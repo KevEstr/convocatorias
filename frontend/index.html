@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monitor de Convocatorias – FI UdeA</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3248;
+      --text: #e2e8f0;
+      --text-muted: #8892a4;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --alta: #22c55e;
+      --media: #eab308;
+      --baja: #f97316;
+      --no-aplica: #6b7280;
+      --secop: #3b82f6;
+      --minciencias: #8b5cf6;
+      --demo: #06b6d4;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      gap: 1rem;
+    }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .header-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), #a855f7);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+    .header-title h1 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .header-title p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--alta);
+      box-shadow: 0 0 6px var(--alta);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    #last-update {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 1.1rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-primary.loading { opacity: 0.7; cursor: wait; }
+
+    /* ── Main container ── */
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem 3rem;
+    }
+
+    /* ── Stats bar ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px) { .stats-grid { grid-template-columns: 1fr; } }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      transition: border-color 0.2s;
+    }
+    .stat-card:hover { border-color: var(--accent); }
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .stat-value.green { color: var(--alta); }
+    .stat-value.yellow { color: var(--media); }
+    .stat-value.accent { color: var(--accent); }
+    .stat-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Filters ── */
+    .filters-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .filter-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .filter-select, .filter-input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 0.82rem;
+      padding: 0.4rem 0.75rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .filter-select:focus, .filter-input:focus { border-color: var(--accent); }
+    .filter-input { min-width: 220px; }
+    .filter-chips {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .chip {
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--text); }
+    .chip.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    .results-count {
+      margin-left: auto;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+    .empty-state h3 { color: var(--text); margin-bottom: 0.5rem; }
+
+    /* ── Loading ── */
+    .skeleton-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 1rem;
+    }
+    .skeleton-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      height: 280px;
+    }
+    .skeleton-line {
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+      margin-bottom: 0.75rem;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── Cards grid ── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 1rem;
+    }
+    @media (max-width: 480px) { .cards-grid { grid-template-columns: 1fr; } }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .card.alta::before { background: var(--alta); }
+    .card.media::before { background: var(--media); }
+    .card.baja::before { background: var(--baja); }
+    .card.no-aplica::before { background: var(--no-aplica); }
+    .card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 20px rgba(99,102,241,0.12);
+      transform: translateY(-2px);
+    }
+
+    /* Card header */
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .card-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.4;
+      flex: 1;
+    }
+    .card-title a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .card-title a:hover { color: var(--accent-hover); }
+    .badge-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .badge-secop { background: rgba(59,130,246,0.15); color: var(--secop); border: 1px solid rgba(59,130,246,0.3); }
+    .badge-minciencias { background: rgba(139,92,246,0.15); color: var(--minciencias); border: 1px solid rgba(139,92,246,0.3); }
+    .badge-demo { background: rgba(6,182,212,0.15); color: var(--demo); border: 1px solid rgba(6,182,212,0.3); }
+    .badge-alta { background: rgba(34,197,94,0.15); color: var(--alta); border: 1px solid rgba(34,197,94,0.3); }
+    .badge-media { background: rgba(234,179,8,0.15); color: var(--media); border: 1px solid rgba(234,179,8,0.3); }
+    .badge-baja { background: rgba(249,115,22,0.15); color: var(--baja); border: 1px solid rgba(249,115,22,0.3); }
+    .badge-no-aplica { background: rgba(107,114,128,0.15); color: var(--no-aplica); border: 1px solid rgba(107,114,128,0.3); }
+
+    /* Card meta row */
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .meta-item .icon { font-size: 0.85rem; }
+    .meta-item strong { color: var(--text); font-weight: 500; }
+    .meta-item.urgent strong { color: #ef4444; }
+    .meta-item.soon strong { color: var(--baja); }
+
+    /* Progress bars */
+    .progress-section { display: flex; flex-direction: column; gap: 0.5rem; }
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .progress-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      width: 140px;
+      flex-shrink: 0;
+    }
+    .progress-bar {
+      flex: 1;
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.8s ease;
+    }
+    .progress-value {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text);
+      width: 30px;
+      text-align: right;
+    }
+
+    /* Areas tags */
+    .areas-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .area-tag {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    /* Reasoning expandable */
+    .razon-section {
+      border-top: 1px solid var(--border);
+      padding-top: 0.75rem;
+    }
+    .razon-toggle {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0;
+      transition: color 0.15s;
+    }
+    .razon-toggle:hover { color: var(--text); }
+    .razon-toggle .arrow { transition: transform 0.2s; }
+    .razon-toggle.open .arrow { transform: rotate(90deg); }
+    .razon-text {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-top: 0.5rem;
+      display: none;
+    }
+    .razon-text.visible { display: block; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 2rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.85rem 1.25rem;
+      font-size: 0.85rem;
+      color: var(--text);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: transform 0.3s, opacity 0.3s;
+      z-index: 999;
+      max-width: 320px;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.success { border-left: 3px solid var(--alta); }
+    #toast.error { border-left: 3px solid #ef4444; }
+    #toast.info { border-left: 3px solid var(--accent); }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="header-logo">🎓</div>
+      <div class="header-title">
+        <h1>Monitor de Convocatorias</h1>
+        <p>Facultad de Ingeniería – Universidad de Antioquia</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="status-dot" title="Sistema activo"></div>
+      <span id="last-update">Cargando...</span>
+      <button class="btn-primary" id="btn-refresh" onclick="triggerFetch()">
+        <span>↻</span> Actualizar ahora
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main>
+  <!-- Stats -->
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-card">
+      <span class="stat-label">Total convocatorias</span>
+      <span class="stat-value accent" id="stat-total">–</span>
+      <span class="stat-sub">registradas en el sistema</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Abiertas</span>
+      <span class="stat-value green" id="stat-abiertas">–</span>
+      <span class="stat-sub">actualmente vigentes</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Alta prioridad</span>
+      <span class="stat-value yellow" id="stat-alta">–</span>
+      <span class="stat-sub">recomendadas por IA</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Monto total estimado</span>
+      <span class="stat-value" id="stat-monto">–</span>
+      <span class="stat-sub">suma de convocatorias con valor</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="filter-group">
+      <span class="filter-label">Recomendación:</span>
+      <div class="filter-chips">
+        <button class="chip active" data-filter="rec" data-val="">Todas</button>
+        <button class="chip" data-filter="rec" data-val="alta">🟢 Alta</button>
+        <button class="chip" data-filter="rec" data-val="media">🟡 Media</button>
+        <button class="chip" data-filter="rec" data-val="baja">🟠 Baja</button>
+        <button class="chip" data-filter="rec" data-val="no aplica">⬜ No aplica</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Fuente:</span>
+      <select class="filter-select" id="filter-fuente" onchange="applyFilters()">
+        <option value="">Todas</option>
+        <option value="secop">SECOP II</option>
+        <option value="minciencias">Minciencias</option>
+        <option value="demo">Demo</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <input type="text" class="filter-input" id="filter-search"
+             placeholder="🔍  Buscar por título, entidad…"
+             oninput="applyFilters()" />
+    </div>
+    <span class="results-count" id="results-count"></span>
+  </div>
+
+  <!-- Content area -->
+  <div id="content-area"></div>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <p>
+    Monitor de Convocatorias · Facultad de Ingeniería · Universidad de Antioquia ·
+    Datos: <a href="https://www.datos.gov.co/resource/jbjy-vk9h.json" target="_blank">SECOP II (datos.gov.co)</a> ·
+    <a href="https://minciencias.gov.co/convocatorias/todas" target="_blank">Minciencias</a>
+  </p>
+</footer>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  let allConvocatorias = [];
+  let activeRec = '';
+  let activeFuente = '';
+  let searchText = '';
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    loadConvocatorias();
+    // Refresh every 5 minutes
+    setInterval(loadConvocatorias, 5 * 60 * 1000);
+  });
+
+  // ── Data loading ──────────────────────────────────────────────────────────
+  async function loadConvocatorias() {
+    showSkeleton();
+    try {
+      const res = await fetch('/api/convocatorias');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      allConvocatorias = data.convocatorias || [];
+      updateStats(data.stats || {});
+      updateLastUpdate(data.updated_at);
+      applyFilters();
+    } catch (e) {
+      console.error('Error loading data:', e);
+      showError('No se pudo conectar con el servidor. Asegúrate de que esté corriendo.');
+    }
+  }
+
+  // ── Stats ─────────────────────────────────────────────────────────────────
+  function updateStats(stats) {
+    document.getElementById('stat-total').textContent = stats.total ?? '0';
+    document.getElementById('stat-abiertas').textContent = stats.abiertas ?? '0';
+    document.getElementById('stat-alta').textContent = stats.alta_prioridad ?? '0';
+    const monto = stats.monto_total ?? 0;
+    document.getElementById('stat-monto').textContent = formatMonto(monto, true);
+  }
+
+  function updateLastUpdate(iso) {
+    if (!iso) return;
+    const d = new Date(iso);
+    document.getElementById('last-update').textContent =
+      'Actualizado: ' + d.toLocaleString('es-CO', { hour12: false });
+  }
+
+  // ── Filters ───────────────────────────────────────────────────────────────
+  document.querySelectorAll('[data-filter="rec"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-filter="rec"]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeRec = btn.dataset.val;
+      applyFilters();
+    });
+  });
+
+  function applyFilters() {
+    activeFuente = document.getElementById('filter-fuente').value;
+    searchText = document.getElementById('filter-search').value.toLowerCase().trim();
+
+    let filtered = allConvocatorias.filter(c => {
+      if (activeRec && c.recomendacion !== activeRec) return false;
+      if (activeFuente && c.fuente !== activeFuente) return false;
+      if (searchText) {
+        const haystack = `${c.titulo} ${c.entidad} ${c.descripcion}`.toLowerCase();
+        if (!haystack.includes(searchText)) return false;
+      }
+      return true;
+    });
+
+    document.getElementById('results-count').textContent =
+      `${filtered.length} de ${allConvocatorias.length} resultado${filtered.length !== 1 ? 's' : ''}`;
+
+    renderCards(filtered);
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  function showSkeleton() {
+    const area = document.getElementById('content-area');
+    area.innerHTML = `<div class="skeleton-grid">${Array(6).fill(0).map(() => `
+      <div class="skeleton-card">
+        <div class="skeleton-line" style="height:14px;width:80%"></div>
+        <div class="skeleton-line" style="height:10px;width:40%"></div>
+        <div class="skeleton-line" style="height:10px;width:60%;margin-top:1rem"></div>
+        <div class="skeleton-line" style="height:8px;width:100%;margin-top:1rem"></div>
+        <div class="skeleton-line" style="height:8px;width:100%"></div>
+        <div class="skeleton-line" style="height:8px;width:70%;margin-top:1rem"></div>
+      </div>`).join('')}</div>`;
+  }
+
+  function showError(msg) {
+    document.getElementById('content-area').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">⚠️</div>
+        <h3>Error de conexión</h3>
+        <p>${msg}</p>
+      </div>`;
+  }
+
+  function renderCards(list) {
+    const area = document.getElementById('content-area');
+    if (!list.length) {
+      area.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">🔍</div>
+          <h3>Sin resultados</h3>
+          <p>No hay convocatorias que coincidan con los filtros aplicados.</p>
+        </div>`;
+      return;
+    }
+
+    area.innerHTML = `<div class="cards-grid">${list.map(renderCard).join('')}</div>`;
+  }
+
+  function renderCard(c) {
+    const rec = c.recomendacion || 'no aplica';
+    const recClass = rec.replace(' ', '-');
+    const recEmoji = { alta: '🟢', media: '🟡', baja: '🟠', 'no aplica': '⬜' }[rec] || '⬜';
+    const recLabel = { alta: 'Alta', media: 'Media', baja: 'Baja', 'no aplica': 'No aplica' }[rec] || rec;
+
+    const fuenteLabel = { secop: 'SECOP II', minciencias: 'Minciencias', demo: 'Demo' }[c.fuente] || c.fuente;
+    const prob = c.probabilidad_ganar ?? 0;
+    const cump = c.cumplimiento_requisitos ?? 0;
+    const probColor = prob >= 70 ? '#22c55e' : prob >= 40 ? '#eab308' : '#f97316';
+    const cumpColor = cump >= 70 ? '#22c55e' : cump >= 40 ? '#eab308' : '#f97316';
+
+    const areas = Array.isArray(c.areas_requeridas) ? c.areas_requeridas : [];
+    const areasHtml = areas.slice(0, 5).map(a => `<span class="area-tag">${esc(a)}</span>`).join('');
+
+    const diasRestantes = calcDias(c.fecha_cierre);
+    let diasHtml = '';
+    if (diasRestantes !== null) {
+      const urgClass = diasRestantes <= 7 ? 'urgent' : diasRestantes <= 15 ? 'soon' : '';
+      const diasTxt = diasRestantes < 0 ? 'Vencida' : diasRestantes === 0 ? 'Hoy' : `${diasRestantes}d restantes`;
+      diasHtml = `<div class="meta-item ${urgClass}"><span class="icon">⏰</span><strong>${diasTxt}</strong></div>`;
+    }
+
+    const montoHtml = c.monto
+      ? `<div class="meta-item"><span class="icon">💰</span><strong>${formatMonto(c.monto)}</strong></div>`
+      : '';
+
+    const urlAttr = c.url ? `href="${esc(c.url)}" target="_blank" rel="noopener"` : '';
+    const titleEl = c.url
+      ? `<a ${urlAttr}>${esc(c.titulo || 'Sin título')}</a>`
+      : esc(c.titulo || 'Sin título');
+
+    const razonHtml = c.razon_scoring ? `
+      <div class="razon-section">
+        <button class="razon-toggle" onclick="toggleRazon(this)">
+          <span class="arrow">▶</span> Ver análisis IA
+        </button>
+        <p class="razon-text">${esc(c.razon_scoring)}</p>
+      </div>` : '';
+
+    const cardId = `card-${c.id}`;
+
+    return `
+      <div class="card ${recClass}" id="${cardId}">
+        <div class="card-header">
+          <div class="card-title">${titleEl}</div>
+          <div class="badge-group">
+            <span class="badge badge-${c.fuente}">${fuenteLabel}</span>
+            <span class="badge badge-${recClass}">${recEmoji} ${recLabel}</span>
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-item"><span class="icon">🏢</span><span>${esc(c.entidad || '–')}</span></div>
+          ${montoHtml}
+          ${diasHtml}
+          ${c.fecha_cierre ? `<div class="meta-item"><span class="icon">📅</span><span>${formatDate(c.fecha_cierre)}</span></div>` : ''}
+        </div>
+        ${c.analizado ? `
+        <div class="progress-section">
+          <div class="progress-row">
+            <span class="progress-label">Prob. de ganar</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:${prob}%;background:${probColor}"></div></div>
+            <span class="progress-value">${prob}%</span>
+          </div>
+          <div class="progress-row">
+            <span class="progress-label">Cumpl. requisitos</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:${cump}%;background:${cumpColor}"></div></div>
+            <span class="progress-value">${cump}%</span>
+          </div>
+        </div>` : `<div class="meta-item" style="font-size:0.75rem;color:var(--text-muted)">⏳ Pendiente de análisis</div>`}
+        ${areasHtml ? `<div class="areas-row">${areasHtml}</div>` : ''}
+        ${razonHtml}
+      </div>`;
+  }
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+  async function triggerFetch() {
+    const btn = document.getElementById('btn-refresh');
+    btn.classList.add('loading');
+    btn.textContent = '↻ Actualizando…';
+    showToast('Obteniendo convocatorias…', 'info');
+
+    try {
+      const res = await fetch('/api/fetch', { method: 'POST' });
+      const data = await res.json();
+      if (data.ok) {
+        showToast(`✓ ${data.message}`, 'success');
+        await loadConvocatorias();
+      } else {
+        showToast('Error: ' + data.error, 'error');
+      }
+    } catch (e) {
+      showToast('Error al conectar con el servidor', 'error');
+    } finally {
+      btn.classList.remove('loading');
+      btn.innerHTML = '<span>↻</span> Actualizar ahora';
+    }
+  }
+
+  function toggleRazon(btn) {
+    btn.classList.toggle('open');
+    const text = btn.nextElementSibling;
+    text.classList.toggle('visible');
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function esc(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function formatMonto(value, compact = false) {
+    if (!value && value !== 0) return '–';
+    const n = parseFloat(value);
+    if (isNaN(n)) return '–';
+    if (compact) {
+      if (n >= 1e9) return `$${(n / 1e9).toFixed(1)}B COP`;
+      if (n >= 1e6) return `$${(n / 1e6).toFixed(0)}M COP`;
+      if (n >= 1e3) return `$${(n / 1e3).toFixed(0)}K COP`;
+    }
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency', currency: 'COP',
+      minimumFractionDigits: 0, maximumFractionDigits: 0
+    }).format(n);
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '–';
+    try {
+      const d = new Date(iso + 'T00:00:00');
+      return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch { return iso; }
+  }
+
+  function calcDias(iso) {
+    if (!iso) return null;
+    try {
+      const cierre = new Date(iso + 'T23:59:59');
+      const hoy = new Date();
+      const diff = cierre - hoy;
+      return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    } catch { return null; }
+  }
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  let toastTimer;
+  function showToast(msg, type = 'info') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `show ${type}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.className = ''; }, 4000);
+  }
+</script>
+</body>
+</html>

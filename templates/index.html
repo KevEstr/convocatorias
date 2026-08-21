@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radar de Convocatorias — Facultad de Ingeniería UdeA</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a1f2e 0%, #16213e 100%);
+      border-bottom: 1px solid #2d3748;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    header h1 span { color: #667eea; }
+
+    .badge {
+      background: #667eea22;
+      color: #667eea;
+      border: 1px solid #667eea44;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      padding: 20px 32px;
+      background: #13171f;
+      border-bottom: 1px solid #1e2535;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      border-radius: 12px;
+      padding: 14px 20px;
+      min-width: 150px;
+      flex: 1;
+    }
+
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #667eea;
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: #718096;
+      margin-top: 2px;
+    }
+
+    .toolbar {
+      padding: 16px 32px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: #0f1117;
+      border-bottom: 1px solid #1e2535;
+    }
+
+    .toolbar select, .toolbar input {
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      color: #e2e8f0;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      outline: none;
+    }
+
+    .toolbar select:focus, .toolbar input:focus {
+      border-color: #667eea;
+    }
+
+    .btn {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover { background: #5a67d8; }
+    .btn-primary:disabled { background: #4a5568; cursor: not-allowed; }
+
+    .btn-outline {
+      background: transparent;
+      color: #667eea;
+      border: 1px solid #667eea;
+    }
+
+    .btn-outline:hover { background: #667eea22; }
+
+    .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ffffff44;
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    main {
+      padding: 24px 32px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      border-radius: 16px;
+      padding: 20px;
+      transition: border-color 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      border-color: #667eea;
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #f7fafc;
+      line-height: 1.4;
+      flex: 1;
+    }
+
+    .rec-badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .rec-APLICAR { background: #276749; color: #9ae6b4; }
+    .rec-EVALUAR { background: #744210; color: #fbd38d; }
+    .rec-NO_APLICAR { background: #63171b; color: #fc8181; }
+
+    .card-meta {
+      font-size: 0.8rem;
+      color: #718096;
+      margin-bottom: 14px;
+    }
+
+    .card-meta span { margin-right: 12px; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      background: #0f1117;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .metric-label {
+      font-size: 0.72rem;
+      color: #718096;
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .bar {
+      height: 4px;
+      border-radius: 4px;
+      background: #2d3748;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .monto {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #68d391;
+      margin-bottom: 10px;
+    }
+
+    .resumen {
+      font-size: 0.82rem;
+      color: #a0aec0;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      background: #667eea22;
+      color: #90cdf4;
+      border: 1px solid #667eea33;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+    }
+
+    .fuente-tag {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+    }
+
+    .card-footer {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #2d3748;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: #718096;
+    }
+
+    .card-footer a {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    .card-footer a:hover { text-decoration: underline; }
+
+    .empty {
+      text-align: center;
+      padding: 80px 20px;
+      color: #4a5568;
+    }
+
+    .empty h2 { font-size: 1.2rem; margin-bottom: 8px; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #276749;
+      color: #9ae6b4;
+      border: 1px solid #2f855a;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      z-index: 100;
+      display: none;
+      animation: fadein 0.3s ease;
+    }
+
+    @keyframes fadein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .update-info {
+      font-size: 0.78rem;
+      color: #4a5568;
+      margin-left: auto;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📡 Radar de Convocatorias <span>— Facultad de Ingeniería UdeA</span></h1>
+  <span class="badge" id="update-badge">Cargando...</span>
+</header>
+
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num" id="stat-total">—</div>
+    <div class="stat-label">Total convocatorias</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="stat-relevantes">—</div>
+    <div class="stat-label">Relevantes para la facultad</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="stat-aplicar">—</div>
+    <div class="stat-label">Recomendadas APLICAR</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="stat-update">—</div>
+    <div class="stat-label">Última actualización</div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <input type="text" id="buscar" placeholder="🔍 Buscar convocatoria..." style="min-width:220px">
+  <select id="filtro-rec">
+    <option value="">Todas las recomendaciones</option>
+    <option value="APLICAR">✅ Aplicar</option>
+    <option value="EVALUAR">⚠️ Evaluar</option>
+    <option value="NO_APLICAR">❌ No aplicar</option>
+  </select>
+  <select id="filtro-fuente">
+    <option value="">Todas las fuentes</option>
+    <option value="SECOP II">SECOP II</option>
+    <option value="Minciencias">Minciencias</option>
+    <option value="Regalías SGR">Regalías SGR</option>
+  </select>
+  <button class="btn btn-primary" id="btn-actualizar" onclick="actualizarDatos()">
+    <span id="btn-text">🔄 Actualizar datos</span>
+    <div class="spinner" id="spinner"></div>
+  </button>
+  <button class="btn btn-outline" onclick="cargarConvocatorias()">↺ Recargar vista</button>
+</div>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" style="display:none">
+    <h2>Sin datos aún</h2>
+    <p>Haz clic en "Actualizar datos" para obtener las convocatorias.</p>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let todas = [];
+
+  async function cargarStats() {
+    const r = await fetch('/api/stats');
+    const s = await r.json();
+    document.getElementById('stat-total').textContent = s.total;
+    document.getElementById('stat-relevantes').textContent = s.relevantes;
+    document.getElementById('stat-aplicar').textContent = s.aplicar;
+    const fecha = s.ultima_actualizacion === 'Nunca' ? 'Nunca' :
+      new Date(s.ultima_actualizacion).toLocaleDateString('es-CO');
+    document.getElementById('stat-update').textContent = fecha;
+    document.getElementById('update-badge').textContent = `Actualizado: ${fecha}`;
+  }
+
+  async function cargarConvocatorias() {
+    const r = await fetch('/api/convocatorias');
+    todas = await r.json();
+    renderizar(todas);
+    cargarStats();
+  }
+
+  function renderizar(datos) {
+    const grid = document.getElementById('grid');
+    const empty = document.getElementById('empty');
+
+    if (!datos.length) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+
+    empty.style.display = 'none';
+    grid.innerHTML = datos.map(c => cardHTML(c)).join('');
+  }
+
+  function cardHTML(c) {
+    const a = c.analisis || {};
+    const prob = a.probabilidad_ganar || 0;
+    const cump = a.cumplimiento_requisitos || 0;
+    const rec = a.recomendacion || 'EVALUAR';
+    const monto = c.monto ? `$${Number(c.monto).toLocaleString('es-CO')} COP` : 'Monto no especificado';
+    const areas = (a.areas_relevantes || []).slice(0, 3);
+    const probColor = prob >= 70 ? '#68d391' : prob >= 40 ? '#fbd38d' : '#fc8181';
+    const cumpColor = cump >= 70 ? '#68d391' : cump >= 40 ? '#fbd38d' : '#fc8181';
+
+    const fechaCierre = c.fecha_cierre ?
+      `<span>📅 Cierre: ${c.fecha_cierre.split('T')[0]}</span>` : '';
+
+    const urlBtn = c.url ?
+      `<a href="${c.url}" target="_blank" rel="noopener">Ver convocatoria →</a>` :
+      '<span>Sin enlace</span>';
+
+    return `
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">${escHtml(c.titulo)}</div>
+          <span class="rec-badge rec-${rec}">${rec}</span>
+        </div>
+        <div class="card-meta">
+          <span class="fuente-tag">${escHtml(c.fuente)}</span>
+          <span>${escHtml(c.entidad || '')}</span>
+          ${c.departamento ? `<span>📍 ${escHtml(c.departamento)}</span>` : ''}
+        </div>
+        <div class="monto">💰 ${monto}</div>
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-label">Prob. de ganar</div>
+            <div class="metric-value" style="color:${probColor}">${prob}%</div>
+            <div class="bar"><div class="bar-fill" style="width:${prob}%;background:${probColor}"></div></div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Cumplimiento req.</div>
+            <div class="metric-value" style="color:${cumpColor}">${cump}%</div>
+            <div class="bar"><div class="bar-fill" style="width:${cump}%;background:${cumpColor}"></div></div>
+          </div>
+        </div>
+        ${a.resumen ? `<div class="resumen">${escHtml(a.resumen)}</div>` : ''}
+        <div class="tags">
+          ${areas.map(ar => `<span class="tag">${escHtml(ar)}</span>`).join('')}
+        </div>
+        <div class="card-footer">
+          ${fechaCierre}
+          ${urlBtn}
+        </div>
+      </div>`;
+  }
+
+  function escHtml(str) {
+    return String(str || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  function filtrar() {
+    const texto = document.getElementById('buscar').value.toLowerCase();
+    const rec = document.getElementById('filtro-rec').value;
+    const fuente = document.getElementById('filtro-fuente').value;
+
+    const filtradas = todas.filter(c => {
+      const a = c.analisis || {};
+      const matchTexto = !texto ||
+        c.titulo.toLowerCase().includes(texto) ||
+        (c.entidad || '').toLowerCase().includes(texto) ||
+        (a.resumen || '').toLowerCase().includes(texto);
+      const matchRec = !rec || a.recomendacion === rec;
+      const matchFuente = !fuente || c.fuente === fuente;
+      return matchTexto && matchRec && matchFuente;
+    });
+
+    renderizar(filtradas);
+  }
+
+  async function actualizarDatos() {
+    const btn = document.getElementById('btn-actualizar');
+    const txt = document.getElementById('btn-text');
+    const sp = document.getElementById('spinner');
+
+    btn.disabled = true;
+    txt.style.display = 'none';
+    sp.style.display = 'block';
+
+    try {
+      const r = await fetch('/api/actualizar', { method: 'POST' });
+      const data = await r.json();
+      mostrarToast(`✅ ${data.nuevas} convocatorias nuevas agregadas`);
+      await cargarConvocatorias();
+    } catch(e) {
+      mostrarToast('❌ Error al actualizar', true);
+    } finally {
+      btn.disabled = false;
+      txt.style.display = 'inline';
+      sp.style.display = 'none';
+    }
+  }
+
+  function mostrarToast(msg, error=false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.background = error ? '#63171b' : '#276749';
+    t.style.color = error ? '#fc8181' : '#9ae6b4';
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 4000);
+  }
+
+  document.getElementById('buscar').addEventListener('input', filtrar);
+  document.getElementById('filtro-rec').addEventListener('change', filtrar);
+  document.getElementById('filtro-fuente').addEventListener('change', filtrar);
+
+  // Cargar al inicio
+  cargarConvocatorias();
+</script>
+</body>
+</html>
