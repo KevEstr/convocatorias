@@ -1,0 +1,17 @@
+# Secretos
+.env
+
+# Datos locales
+data/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+venv311/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
