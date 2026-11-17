@@ -3,14 +3,33 @@ Fuentes de convocatorias. Usa APIs públicas donde existen,
 scraping simple donde no hay Cloudflare.
 Sin dependencia de Playwright — usa httpx puro.
 """
+import asyncio
+import re
+from html import unescape
+
 import httpx
-from datetime import datetime
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     "Accept": "application/json",
 }
 TIMEOUT = 20
+
+MINCIENCIAS_URL = "https://minciencias.gov.co/convocatorias/todas"
+MESES_ES = {
+    "enero": 1,
+    "febrero": 2,
+    "marzo": 3,
+    "abril": 4,
+    "mayo": 5,
+    "junio": 6,
+    "julio": 7,
+    "agosto": 8,
+    "septiembre": 9,
+    "octubre": 10,
+    "noviembre": 11,
+    "diciembre": 12,
+}
 
 
 async def fetch_secop(limite: int = 30) -> list[dict]:
@@ -59,92 +78,207 @@ async def fetch_secop(limite: int = 30) -> list[dict]:
                     "entidad": item.get("entidad", ""),
                     "url": url_proceso,
                     "monto": _parse_monto(item.get("precio_base", "0")),
-                    "fecha_cierre": item.get("fecha_de_ultima_publicaci", "").split("T")[0],
+                    "fecha_cierre": "",
                     "fecha_publicacion": item.get("fecha_de_publicacion_del", "").split("T")[0],
                     "estado": item.get("estado_de_apertura_del_proceso", ""),
                     "modalidad": item.get("modalidad_de_contratacion", ""),
                     "departamento": item.get("departamento_entidad", ""),
                     "raw": {},
                 })
+            print(f"[SECOP] Obtenidas {len(results)} convocatorias")
             return results
     except Exception as e:
         print(f"[SECOP] Error: {e}")
         return []
 
 
-async def fetch_minciencias() -> list[dict]:
+async def fetch_minciencias(paginas: int = 3) -> list[dict]:
     """
-    Minciencias - scraping de página de convocatorias.
-    Sin Cloudflare, HTML estático.
+    Minciencias - listado público de convocatorias (Drupal, tabla de vistas).
+    Clasifica como "Regalías SGR" las convocatorias financiadas con recursos
+    del Sistema General de Regalías y consulta el detalle para obtener estado
+    y fecha de cierre.
     """
-    url = "https://minciencias.gov.co/convocatorias/todas"
     try:
         async with httpx.AsyncClient(
             timeout=TIMEOUT,
             follow_redirects=True,
             headers={**HEADERS, "Accept": "text/html,application/xhtml+xml"},
         ) as client:
-            r = await client.get(url)
-            r.raise_for_status()
-            return _parse_minciencias_html(r.text)
+            lista = []
+            for page in range(max(1, paginas)):
+                r = await client.get(MINCIENCIAS_URL, params={"page": page})
+                r.raise_for_status()
+                items = _parse_minciencias_listing(r.text)
+                if not items:
+                    break
+                lista.extend(items)
+
+            sem = asyncio.Semaphore(5)
+
+            async def consultar(item):
+                async with sem:
+                    return await _fetch_minciencias_detalle(client, item)
+
+            detalles = await asyncio.gather(
+                *(consultar(item) for item in lista),
+                return_exceptions=True,
+            )
     except Exception as e:
         print(f"[Minciencias] Error: {e}")
         return []
 
-
-def _parse_minciencias_html(html: str) -> list[dict]:
-    """Extrae convocatorias del HTML de Minciencias con regex."""
-    import re
-    results = []
-
-    # Extraer bloques de convocatoria
-    bloques = re.findall(r'<article[^>]*>(.*?)</article>', html, re.DOTALL | re.IGNORECASE)
-
-    for bloque in bloques[:30]:
-        # Título con link
-        titulo_m = re.search(
-            r'<a[^>]+href="([^"]+)"[^>]*>\s*([^<]{10,}?)\s*</a>',
-            bloque, re.IGNORECASE
-        )
-        fecha_m = re.search(r'(\d{1,2}[/-]\d{1,2}[/-]\d{4})', bloque)
-        estado_m = re.search(
-            r'(Abierta|Cerrada|Pr[oó]ximamente|En evaluaci[oó]n)',
-            bloque, re.IGNORECASE
-        )
-        monto_m = re.search(r'\$\s*([\d.,]+)', bloque)
-
-        if not titulo_m:
+    resultados = []
+    vistos = set()
+    for item in detalles:
+        if not isinstance(item, dict):
             continue
-
-        href = titulo_m.group(1).strip()
-        titulo = titulo_m.group(2).strip()
-        estado = estado_m.group(1) if estado_m else "Abierta"
-
-        if "cerrada" in estado.lower():
+        estado = item.get("estado") or "No verificada"
+        if estado in ("Finalizada", "Cerrada"):
             continue
-
-        full_url = href if href.startswith("http") else f"https://minciencias.gov.co{href}"
-
-        results.append({
-            "fuente": "Minciencias",
-            "titulo": titulo,
-            "entidad": "Ministerio de Ciencias, Tecnología e Innovación",
-            "url": full_url,
-            "monto": _parse_monto(monto_m.group(1)) if monto_m else 0,
-            "fecha_cierre": fecha_m.group(1) if fecha_m else "",
-            "fecha_publicacion": "",
+        entidad = "Ministerio de Ciencias, Tecnología e Innovación"
+        key = (item.get("titulo", ""), entidad)
+        if key in vistos:
+            continue
+        vistos.add(key)
+        resultados.append({
+            "fuente": "Regalías SGR" if item.get("sgr") else "Minciencias",
+            "titulo": item.get("titulo", "Sin título"),
+            "entidad": entidad,
+            "url": item.get("url", ""),
+            "monto": item.get("monto", 0),
+            "fecha_cierre": item.get("fecha_cierre", ""),
+            "fecha_publicacion": item.get("fecha_publicacion", ""),
             "estado": estado,
             "modalidad": "Investigación y CTI",
             "departamento": "Nacional",
             "raw": {},
         })
 
-    return results
+    print(f"[Minciencias] Obtenidas {len(resultados)} convocatorias vigentes o recientes")
+    return resultados
+
+
+def _parse_minciencias_listing(html: str) -> list[dict]:
+    """Extrae las filas de la tabla de convocatorias del listado."""
+    tabla = re.search(
+        r'<table[^>]*views-table[^>]*>.*?<tbody>(.*?)</tbody>',
+        html,
+        re.DOTALL | re.IGNORECASE,
+    )
+    if not tabla:
+        return []
+
+    resultados = []
+    for fila in re.findall(r'<tr[^>]*>(.*?)</tr>', tabla.group(1), re.DOTALL | re.IGNORECASE):
+        enlace = re.search(
+            r'views-field-title[^>]*>\s*<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>',
+            fila,
+            re.DOTALL | re.IGNORECASE,
+        )
+        if not enlace:
+            continue
+
+        href = enlace.group(1).strip()
+        titulo = _limpiar_html(enlace.group(2))
+        if not titulo:
+            continue
+
+        descripcion = _celda(fila, "views-field-body")
+        cuantia = _celda(fila, "views-field-field-cuantia")
+        fecha = re.search(r'content="(\d{4}-\d{2}-\d{2})', fila, re.IGNORECASE)
+        url = href if href.startswith("http") else f"https://minciencias.gov.co{href}"
+        texto = f"{titulo} {descripcion}"
+
+        resultados.append({
+            "titulo": titulo,
+            "url": url,
+            "descripcion": descripcion[:1000],
+            "monto": _parse_monto(cuantia),
+            "fecha_publicacion": fecha.group(1) if fecha else "",
+            "sgr": bool(re.search(r"regal[ií]as|\bSGR\b", texto, re.IGNORECASE)),
+        })
+
+    return resultados
+
+
+async def _fetch_minciencias_detalle(client: httpx.AsyncClient, item: dict) -> dict:
+    """Consulta una convocatoria para obtener estado, cierre y monto."""
+    r = await client.get(item["url"])
+    r.raise_for_status()
+    html = r.text
+
+    estado_txt = _extraer_texto(html, r"panel-state-tex.*?<p>(.*?)</p>")
+    cierre_txt = _extraer_texto(
+        html,
+        r">\s*Cierre\s*</td>.*?<td[^>]*views-field-body[^>]*>(.*?)</td>",
+    )
+    recursos_txt = _extraer_texto(
+        html,
+        r"panel-resoruce.*?panel-resource-tex.*?<p>(.*?)</p>",
+    )
+
+    item["estado"] = _normalizar_estado(estado_txt)
+    item["fecha_cierre"] = _parse_fecha_larga(cierre_txt)
+
+    if not item.get("monto"):
+        monto = re.search(r"\$\s*([\d.,]+)", recursos_txt)
+        if monto:
+            item["monto"] = _parse_monto(monto.group(1))
+
+    return item
+
+
+def _celda(fila: str, clase: str) -> str:
+    m = re.search(
+        r'<td[^>]*class="[^"]*' + re.escape(clase) + r'[^"]*"[^>]*>(.*?)</td>',
+        fila,
+        re.DOTALL | re.IGNORECASE,
+    )
+    return _limpiar_html(m.group(1)) if m else ""
+
+
+def _extraer_texto(html: str, patron: str) -> str:
+    m = re.search(patron, html, re.DOTALL | re.IGNORECASE)
+    return _limpiar_html(m.group(1)) if m else ""
+
+
+def _limpiar_html(valor: str) -> str:
+    texto = re.sub(r"<[^>]+>", " ", valor or "")
+    texto = unescape(texto)
+    return re.sub(r"\s+", " ", texto).strip()
+
+
+def _normalizar_estado(texto: str) -> str:
+    t = (texto or "").lower()
+    if "finaliz" in t:
+        return "Finalizada"
+    if "cerrad" in t:
+        return "Cerrada"
+    if "evaluaci" in t:
+        return "En evaluación"
+    if "abiert" in t:
+        return "Abierta"
+    return "No verificada"
+
+
+def _parse_fecha_larga(texto: str) -> str:
+    """Convierte 'viernes 13 noviembre 2026 04:00 pm' a '2026-11-13'."""
+    m = re.search(
+        r"(\d{1,2})\s+(?:de\s+)?([a-záéíóúñ]+)\s+(?:de\s+)?(\d{4})",
+        texto or "",
+        re.IGNORECASE,
+    )
+    if not m:
+        return ""
+    mes = MESES_ES.get(m.group(2).lower())
+    if not mes:
+        return ""
+    return f"{int(m.group(3)):04d}-{mes:02d}-{int(m.group(1)):02d}"
 
 
 async def fetch_todas(limite_secop: int = 30) -> list[dict]:
     """Obtiene convocatorias de todas las fuentes en paralelo."""
-    import asyncio
     resultados = await asyncio.gather(
         fetch_secop(limite_secop),
         fetch_minciencias(),
@@ -161,6 +295,16 @@ async def fetch_todas(limite_secop: int = 30) -> list[dict]:
 
 def _parse_monto(valor: str) -> int:
     try:
-        return int(float(str(valor).replace(",", "").replace("$", "").replace(".", "").strip()))
-    except:
+        s = str(valor or "").replace("$", "").replace(" ", "").strip()
+        if not s:
+            return 0
+        if "," in s:
+            s = s.split(",")[0].replace(".", "")
+        elif s.count(".") > 1:
+            s = s.replace(".", "")
+        elif "." in s:
+            entero, decimales = s.split(".", 1)
+            s = entero if len(decimales) <= 2 else s.replace(".", "")
+        return int(float(s))
+    except Exception:
         return 0

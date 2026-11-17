@@ -4,27 +4,21 @@ Analiza cada convocatoria con IA y calcula:
 - % cumplimiento de requisitos
 - Áreas relevantes
 - Resumen ejecutivo
+
+El perfil institucional, los criterios y los umbrales se leen desde
+data/ajustes.json y pueden editarse desde el frontend.
 """
+import json
 import os
+import re
+
 from openai import OpenAI
 from dotenv import load_dotenv
 
+from ajustes import cargar_ajustes, texto_criterios
+
 load_dotenv()
 
-PERFIL_FACULTAD = """
-La Facultad de Ingeniería de la Universidad de Antioquia tiene:
-- 12 programas de pregrado: Ingeniería Civil, Sistemas, Industrial, Electrónica, Telecomunicaciones, 
-  Ambiental, Química, Materiales, Biomédica, Geológica, Agrícola, Mecánica
-- 20+ grupos de investigación reconocidos por Minciencias (categorías A1, A, B, C)
-- Centro de Investigación CESET con laboratorios especializados
-- Experiencia en proyectos con entidades públicas y privadas
-- Capacidad para ejecutar contratos de investigación, consultoría, interventoría y obra
-- Convenios internacionales con universidades de USA, Europa y Latinoamérica
-- Acreditación de alta calidad institucional
-- Experiencia en proyectos de infraestructura, agua potable, energías renovables, 
-  TIC, salud digital, medio ambiente y sostenibilidad
-- Presupuesto ejecutado anual promedio: 15.000 millones COP en proyectos externos
-"""
 
 def get_client():
     api_key = os.getenv("OPENROUTER_API_KEY", "")
@@ -37,18 +31,30 @@ def get_client():
     )
 
 
-def analizar_convocatoria(conv: dict) -> dict:
+def analizar_convocatoria(conv: dict, ajustes: dict | None = None) -> dict:
     """
     Analiza una convocatoria y retorna el análisis estructurado.
     """
+    ajustes = ajustes or cargar_ajustes()
+
     try:
         client = get_client()
-        model = os.getenv("OPENROUTER_MODEL", "google/gemini-2.5-flash-lite")
+        perfil = ajustes["perfil"]
+        criterios = texto_criterios(ajustes["criterios"])
+        instrucciones = ajustes.get("instrucciones") or "Ninguna."
+        descripcion = (conv.get("descripcion") or "").strip()
 
         prompt = f"""Analiza esta convocatoria y evalúa si la Facultad de Ingeniería de la Universidad de Antioquia debería aplicar.
 
 PERFIL DE LA FACULTAD:
-{PERFIL_FACULTAD}
+{perfil}
+
+CRITERIOS Y PESOS PARA LA ESTIMACIÓN:
+{criterios}
+Usa estos pesos como referencia al estimar probabilidad_ganar y cumplimiento_requisitos.
+
+INSTRUCCIONES ADICIONALES:
+{instrucciones}
 
 CONVOCATORIA:
 Título: {conv.get('titulo', '')}
@@ -59,6 +65,7 @@ Modalidad: {conv.get('modalidad', '')}
 Estado: {conv.get('estado', '')}
 Fecha cierre: {conv.get('fecha_cierre', '')}
 Departamento: {conv.get('departamento', '')}
+Descripción: {descripcion[:1000] or 'No registrada'}
 
 Responde ÚNICAMENTE con este JSON exacto (sin markdown, sin explicaciones):
 {{
@@ -73,39 +80,74 @@ Responde ÚNICAMENTE con este JSON exacto (sin markdown, sin explicaciones):
 }}"""
 
         response = client.chat.completions.create(
-            model=model,
+            model=ajustes["modelo"],
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.1,
+            temperature=float(ajustes["temperatura"]),
             max_tokens=500,
         )
 
-        import json, re
         text = response.choices[0].message.content.strip()
-        # Limpiar markdown si viene con ```json
-        text = re.sub(r'^```json\s*', '', text)
-        text = re.sub(r'\s*```$', '', text)
+        text = re.sub(r"^```json\s*", "", text)
+        text = re.sub(r"\s*```$", "", text)
         analisis = json.loads(text)
-        return analisis
+        return _aplicar_umbrales(analisis, ajustes["umbrales"])
 
     except Exception as e:
-        return {
-            "relevante": True,
-            "probabilidad_ganar": 50,
-            "cumplimiento_requisitos": 50,
-            "areas_relevantes": [],
-            "resumen": f"No se pudo analizar: {str(e)[:100]}",
-            "fortalezas": [],
-            "riesgos": ["Error en análisis IA"],
-            "recomendacion": "EVALUAR",
-        }
+        raise RuntimeError(f"No se pudo analizar la convocatoria con IA: {e}") from e
 
 
-def analizar_lote(convocatorias: list[dict]) -> list[dict]:
+def probar_conexion(ajustes: dict | None = None) -> str:
+    """Realiza una llamada mínima para validar clave, modelo y conectividad."""
+    ajustes = ajustes or cargar_ajustes()
+    client = get_client()
+    response = client.chat.completions.create(
+        model=ajustes["modelo"],
+        messages=[{"role": "user", "content": "Responde únicamente con la palabra OK."}],
+        temperature=0,
+        max_tokens=5,
+    )
+    return (response.choices[0].message.content or "").strip()
+
+
+def analizar_lote(convocatorias: list[dict], ajustes: dict | None = None) -> list[dict]:
     """Analiza una lista de convocatorias y retorna las enriquecidas."""
+    ajustes = ajustes or cargar_ajustes()
     resultado = []
     total = len(convocatorias)
     for i, conv in enumerate(convocatorias):
-        print(f"  Analizando {i+1}/{total}: {conv.get('titulo', '')[:60]}...")
-        analisis = analizar_convocatoria(conv)
+        print(f"  Analizando {i + 1}/{total}: {conv.get('titulo', '')[:60]}...")
+        analisis = analizar_convocatoria(conv, ajustes)
         resultado.append({**conv, "analisis": analisis})
     return resultado
+
+
+def _aplicar_umbrales(analisis: dict, umbrales: dict) -> dict:
+    """Ajusta la recomendación final con los umbrales configurados."""
+    if not umbrales.get("ajustar_recomendacion", True):
+        return analisis
+
+    try:
+        probabilidad = float(analisis.get("probabilidad_ganar", 0))
+        cumplimiento = float(analisis.get("cumplimiento_requisitos", 0))
+    except (TypeError, ValueError):
+        return analisis
+
+    recomendacion_modelo = analisis.get("recomendacion")
+
+    if (
+        probabilidad >= float(umbrales["aplicar_probabilidad"])
+        and cumplimiento >= float(umbrales["aplicar_cumplimiento"])
+    ):
+        recomendacion = "APLICAR"
+    elif (
+        probabilidad < float(umbrales["descartar_probabilidad"])
+        or cumplimiento < float(umbrales["descartar_cumplimiento"])
+    ):
+        recomendacion = "NO_APLICAR"
+    else:
+        recomendacion = "EVALUAR"
+
+    if recomendacion_modelo:
+        analisis["recomendacion_modelo"] = recomendacion_modelo
+    analisis["recomendacion"] = recomendacion
+    return analisis

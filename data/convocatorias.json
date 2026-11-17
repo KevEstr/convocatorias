@@ -1358,5 +1358,109 @@
       "recomendacion": "NO_APLICAR"
     },
     "guardado_en": "2026-08-20T15:37:01.201441"
+  },
+  {
+    "fuente": "SECOP II",
+    "titulo": "Prestar servicios profesionales dirigidos a realizar actuaciones jurídicas de las investigaciones administrativas de competencia de la Dirección de Calidad de Servicios de Salud - Subdirección Inspecc",
+    "entidad": "FONDO FINANCIERO DISTRITAL DE SALUD..",
+    "url": "https://community.secop.gov.co/STS/Users/Login/Index",
+    "monto": 33595333,
+    "fecha_cierre": "",
+    "fecha_publicacion": "",
+    "estado": "Abierto",
+    "modalidad": "Contratación directa",
+    "departamento": "Distrito Capital de Bogotá",
+    "raw": {},
+    "analisis": {
+      "relevante": true,
+      "probabilidad_ganar": 50,
+      "cumplimiento_requisitos": 50,
+      "areas_relevantes": [],
+      "resumen": "No se pudo analizar: Error code: 401 - {'error': {'message': 'User not found.', 'code': 401}}",
+      "fortalezas": [],
+      "riesgos": [
+        "Error en análisis IA"
+      ],
+      "recomendacion": "EVALUAR"
+    },
+    "guardado_en": "2026-11-14T13:09:17.133038"
+  },
+  {
+    "fuente": "SECOP II",
+    "titulo": "prestacion de servicios profesionales de un arquitecto especialista en gerencia de proyectos de la e.s.e. hospital santa marta para apoyar la supervision de los proyectos construccion de infraestruc",
+    "entidad": "EMPRESA SOCIAL DEL ESTADO HOSPITAL SANTA MARTA",
+    "url": "https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.9677488",
+    "monto": 1500000,
+    "fecha_cierre": "",
+    "fecha_publicacion": "",
+    "estado": "Abierto",
+    "modalidad": "Contratación régimen especial",
+    "departamento": "Boyacá",
+    "raw": {},
+    "analisis": {
+      "relevante": true,
+      "probabilidad_ganar": 50,
+      "cumplimiento_requisitos": 50,
+      "areas_relevantes": [],
+      "resumen": "No se pudo analizar: Error code: 401 - {'error': {'message': 'User not found.', 'code': 401}}",
+      "fortalezas": [],
+      "riesgos": [
+        "Error en análisis IA"
+      ],
+      "recomendacion": "EVALUAR"
+    },
+    "guardado_en": "2026-11-14T13:09:17.133167"
+  },
+  {
+    "fuente": "SECOP II",
+    "titulo": "SOLICITUD DE COTIZACIÓN PARA LA ADECUACIÓN; MANTENIMIENTO Y DOTACIÓN DE LA INFRAESTRUCTURA CENTRO DE ATENCIÓN A POBLACIÓN CON DISCAPACIDAD  CADIS SAN MATEO DEL MUNICIPIO DE SOACHA CUNDINAMARCA",
+    "entidad": "MUNICIPIO DE SOACHA..",
+    "url": "https://community.secop.gov.co/STS/Users/Login/Index",
+    "monto": 0,
+    "fecha_cierre": "",
+    "fecha_publicacion": "",
+    "estado": "Abierto",
+    "modalidad": "Solicitud de información a los Proveedores",
+    "departamento": "Cundinamarca",
+    "raw": {},
+    "analisis": {
+      "relevante": true,
+      "probabilidad_ganar": 50,
+      "cumplimiento_requisitos": 50,
+      "areas_relevantes": [],
+      "resumen": "No se pudo analizar: Error code: 401 - {'error': {'message': 'User not found.', 'code': 401}}",
+      "fortalezas": [],
+      "riesgos": [
+        "Error en análisis IA"
+      ],
+      "recomendacion": "EVALUAR"
+    },
+    "guardado_en": "2026-11-14T13:09:17.133171"
+  },
+  {
+    "fuente": "SECOP II",
+    "titulo": "Mantenimiento de infraestructura educativa",
+    "entidad": "INSTITUCION EDUCATIVA TÉCNICA EN TURISMO 12 DE OCTUBRE",
+    "url": "https://community.secop.gov.co/STS/Users/Login/Index",
+    "monto": 600000,
+    "fecha_cierre": "",
+    "fecha_publicacion": "",
+    "estado": "Abierto",
+    "modalidad": "Contratación régimen especial",
+    "departamento": "Magdalena",
+    "raw": {},
+    "analisis": {
+      "relevante": true,
+      "probabilidad_ganar": 50,
+      "cumplimiento_requisitos": 50,
+      "areas_relevantes": [],
+      "resumen": "No se pudo analizar: Error code: 401 - {'error': {'message': 'User not found.', 'code': 401}}",
+      "fortalezas": [],
+      "riesgos": [
+        "Error en análisis IA"
+      ],
+      "recomendacion": "EVALUAR"
+    },
+    "guardado_en": "2026-11-14T13:09:17.133173"
   }
 ]

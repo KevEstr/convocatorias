@@ -43,6 +43,20 @@ def guardar_convocatorias(nuevas: list[dict]) -> int:
     return agregadas
 
 
+def actualizar_analisis(analisis_por_clave: dict) -> int:
+    """Actualiza el análisis de las convocatorias ya registradas."""
+    data = _load()
+    actualizados = 0
+    for conv in data:
+        clave = (conv.get("titulo", ""), conv.get("entidad", ""))
+        if clave in analisis_por_clave:
+            conv["analisis"] = analisis_por_clave[clave]
+            actualizados += 1
+    if actualizados:
+        _save(data)
+    return actualizados
+
+
 def obtener_todas(solo_relevantes: bool = False) -> list[dict]:
     data = _load()
     if solo_relevantes:

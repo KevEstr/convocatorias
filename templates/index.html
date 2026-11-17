@@ -2,532 +2,2621 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Radar de Convocatorias — Facultad de Ingeniería UdeA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Radar de Convocatorias · Facultad de Ingeniería UdeA</title>
+  <meta name="description" content="Radar de convocatorias de la Facultad de Ingeniería de la Universidad de Antioquia: consulta, análisis de afinidad y priorización de oportunidades.">
+  <meta name="theme-color" content="#12452a">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --verde-950: #0f3a22;
+      --verde-900: #12452a;
+      --verde-800: #1b6438;
+      --verde-700: #237542;
+      --verde-100: #e6f1e9;
+      --verde-50: #f0f7f2;
+      --bg: #f4f5f4;
+      --surface: #ffffff;
+      --border: #e1e5e1;
+      --border-strong: #cdd5cd;
+      --text: #1a241c;
+      --text-soft: #37443b;
+      --muted: #5c675e;
+      --muted-2: #7d877f;
+      --amber-bg: #fdf4dd;
+      --amber-text: #8a6100;
+      --amber-border: #f1e2b6;
+      --red-text: #a12a22;
+      --radius: 10px;
+      --radius-sm: 7px;
+      --shadow-sm: 0 1px 2px rgba(16, 32, 20, .05);
+      --shadow-md: 0 12px 40px rgba(10, 25, 15, .16);
+      --font: "Roboto", "Segoe UI", "Helvetica Neue", Arial, system-ui, sans-serif;
+    }
 
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #0f1117;
-      color: #e2e8f0;
-      min-height: 100vh;
-    }
-
-    header {
-      background: linear-gradient(135deg, #1a1f2e 0%, #16213e 100%);
-      border-bottom: 1px solid #2d3748;
-      padding: 20px 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    header h1 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    header h1 span { color: #667eea; }
-
-    .badge {
-      background: #667eea22;
-      color: #667eea;
-      border: 1px solid #667eea44;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-    }
-
-    .stats-bar {
-      display: flex;
-      gap: 16px;
-      padding: 20px 32px;
-      background: #13171f;
-      border-bottom: 1px solid #1e2535;
-      flex-wrap: wrap;
-    }
-
-    .stat {
-      background: #1a1f2e;
-      border: 1px solid #2d3748;
-      border-radius: 12px;
-      padding: 14px 20px;
-      min-width: 150px;
-      flex: 1;
-    }
-
-    .stat-num {
-      font-size: 2rem;
-      font-weight: 800;
-      color: #667eea;
-    }
-
-    .stat-label {
-      font-size: 0.78rem;
-      color: #718096;
-      margin-top: 2px;
-    }
-
-    .toolbar {
-      padding: 16px 32px;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-      background: #0f1117;
-      border-bottom: 1px solid #1e2535;
-    }
-
-    .toolbar select, .toolbar input {
-      background: #1a1f2e;
-      border: 1px solid #2d3748;
-      color: #e2e8f0;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 0.88rem;
-      outline: none;
-    }
-
-    .toolbar select:focus, .toolbar input:focus {
-      border-color: #667eea;
-    }
-
-    .btn {
-      padding: 8px 18px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-size: 0.88rem;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .btn-primary {
-      background: #667eea;
-      color: white;
-    }
-
-    .btn-primary:hover { background: #5a67d8; }
-    .btn-primary:disabled { background: #4a5568; cursor: not-allowed; }
-
-    .btn-outline {
-      background: transparent;
-      color: #667eea;
-      border: 1px solid #667eea;
-    }
-
-    .btn-outline:hover { background: #667eea22; }
-
-    .spinner {
-      display: none;
-      width: 16px;
-      height: 16px;
-      border: 2px solid #ffffff44;
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    main {
-      padding: 24px 32px;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-      gap: 20px;
-    }
-
-    .card {
-      background: #1a1f2e;
-      border: 1px solid #2d3748;
-      border-radius: 16px;
-      padding: 20px;
-      transition: border-color 0.2s, transform 0.2s;
-      cursor: pointer;
-    }
-
-    .card:hover {
-      border-color: #667eea;
-      transform: translateY(-2px);
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 12px;
-      gap: 12px;
-    }
-
-    .card-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #f7fafc;
-      line-height: 1.4;
-      flex: 1;
-    }
-
-    .rec-badge {
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .rec-APLICAR { background: #276749; color: #9ae6b4; }
-    .rec-EVALUAR { background: #744210; color: #fbd38d; }
-    .rec-NO_APLICAR { background: #63171b; color: #fc8181; }
-
-    .card-meta {
-      font-size: 0.8rem;
-      color: #718096;
-      margin-bottom: 14px;
-    }
-
-    .card-meta span { margin-right: 12px; }
-
-    .metrics {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    .metric {
-      background: #0f1117;
-      border-radius: 10px;
-      padding: 10px 12px;
-    }
-
-    .metric-label {
-      font-size: 0.72rem;
-      color: #718096;
-      margin-bottom: 4px;
-    }
-
-    .metric-value {
-      font-size: 1.3rem;
-      font-weight: 700;
-    }
-
-    .bar {
-      height: 4px;
-      border-radius: 4px;
-      background: #2d3748;
-      margin-top: 4px;
-      overflow: hidden;
-    }
-
-    .bar-fill {
-      height: 100%;
-      border-radius: 4px;
-      transition: width 0.5s ease;
-    }
-
-    .monto {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #68d391;
-      margin-bottom: 10px;
-    }
-
-    .resumen {
-      font-size: 0.82rem;
-      color: #a0aec0;
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
       line-height: 1.5;
-      margin-bottom: 12px;
-    }
-
-    .tags {
+      min-height: 100vh;
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    h1, h2, h3, h4, p { margin: 0; }
+    ul { margin: 0; padding: 0; list-style: none; }
+    img { display: block; max-width: 100%; }
+    button, input, select { font: inherit; color: inherit; }
+    a { color: var(--verde-800); }
+    [hidden] { display: none !important; }
+
+    .svg-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+    .icon {
+      width: 18px;
+      height: 18px;
+      flex: none;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
-    .tag {
-      background: #667eea22;
-      color: #90cdf4;
-      border: 1px solid #667eea33;
-      padding: 2px 8px;
-      border-radius: 6px;
-      font-size: 0.72rem;
+    .sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
-    .fuente-tag {
-      background: #2d3748;
-      color: #e2e8f0;
-      padding: 2px 8px;
-      border-radius: 6px;
-      font-size: 0.72rem;
+    .container {
+      width: 100%;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding-left: 24px;
+      padding-right: 24px;
     }
 
-    .card-footer {
-      margin-top: 14px;
-      padding-top: 12px;
-      border-top: 1px solid #2d3748;
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: 0 1px 0 rgba(0, 0, 0, .08);
+    }
+
+    .topbar { background: var(--verde-900); color: #fff; }
+    .topbar-inner {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      font-size: 0.78rem;
-      color: #718096;
+      justify-content: space-between;
+      gap: 24px;
+      padding-top: 14px;
+      padding-bottom: 14px;
     }
-
-    .card-footer a {
-      color: #667eea;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+      color: #fff;
       text-decoration: none;
     }
+    .brand-logo {
+      height: 34px;
+      width: auto;
+      flex: none;
+      filter: brightness(0) invert(1);
+    }
+    .brand-divider {
+      width: 1px;
+      height: 32px;
+      flex: none;
+      background: rgba(255, 255, 255, .38);
+    }
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .brand-title {
+      font-size: .95rem;
+      font-weight: 600;
+      letter-spacing: .01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brand-sub {
+      font-size: .75rem;
+      color: rgba(255, 255, 255, .72);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex: none;
+    }
+    .update-stamp {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: .78rem;
+      color: rgba(255, 255, 255, .78);
+      white-space: nowrap;
+    }
+    .update-stamp .icon { width: 15px; height: 15px; }
 
-    .card-footer a:hover { text-decoration: underline; }
+    .mainnav { background: var(--verde-800); }
+    .mainnav-inner {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .mainnav-inner::-webkit-scrollbar { display: none; }
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      flex: none;
+      height: 46px;
+      padding: 0 16px;
+      border-bottom: 3px solid transparent;
+      color: rgba(255, 255, 255, .82);
+      font-size: .86rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background .15s ease, color .15s ease;
+    }
+    .nav-link:hover { color: #fff; background: rgba(255, 255, 255, .08); }
+    .nav-link.active { color: #fff; font-weight: 600; border-bottom-color: #fff; }
+    .nav-link:focus-visible { outline: 2px solid #fff; outline-offset: -4px; }
 
-    .empty {
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 38px;
+      padding: 0 16px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-size: .85rem;
+      font-weight: 600;
+      line-height: 1;
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s ease, border-color .15s ease, color .15s ease;
+    }
+    .btn .icon { width: 17px; height: 17px; }
+    .btn:focus-visible { outline: 2px solid #0b6839; outline-offset: 2px; }
+    .btn:disabled { cursor: progress; opacity: .75; }
+    .btn-primary { background: var(--verde-800); border-color: var(--verde-800); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--verde-950); border-color: var(--verde-950); }
+    .btn-light { background: #fff; border-color: #fff; color: var(--verde-900); }
+    .btn-light:hover { background: #edf3ee; border-color: #edf3ee; }
+    .btn-ghost-light {
+      background: transparent;
+      border-color: rgba(255, 255, 255, .55);
+      color: #fff;
+    }
+    .btn-ghost-light:hover:not(:disabled) { background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .8); }
+    .btn-outline { background: #fff; border-color: var(--border-strong); color: var(--text-soft); }
+    .btn-outline:hover:not(:disabled) { background: var(--verde-50); border-color: var(--verde-700); color: var(--verde-900); }
+    .btn-sm { height: 32px; padding: 0 12px; font-size: .8rem; }
+    .btn-light:focus-visible, .btn-ghost-light:focus-visible { outline-color: #fff; }
+    .js-update.is-busy .icon-refresh { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    main { flex: 1 0 auto; padding: 28px 0 64px; min-height: 60vh; }
+    .view[hidden] { display: none !important; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(260px, .75fr);
+      gap: 36px;
+      align-items: center;
+      padding: 36px 40px;
+      border-radius: 12px;
+      background: var(--verde-800);
+      color: #fff;
+      box-shadow: var(--shadow-sm);
+    }
+    .hero-eyebrow {
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, .72);
+    }
+    .hero h1 {
+      margin: 10px 0 12px;
+      font-size: 1.7rem;
+      font-weight: 700;
+      letter-spacing: -.015em;
+      line-height: 1.2;
+    }
+    .hero-text {
+      max-width: 58ch;
+      font-size: .9rem;
+      line-height: 1.65;
+      color: rgba(255, 255, 255, .82);
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+    .hero-copy, .hero-panel { min-width: 0; }
+    .hero-panel {
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, .2);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, .10);
+    }
+    .hero-panel-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .82rem;
+      color: rgba(255, 255, 255, .85);
+    }
+    .hero-panel-value {
+      margin-top: 8px;
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .hero-panel-hint { margin-top: 2px; font-size: .78rem; color: rgba(255, 255, 255, .68); }
+    .hero-panel-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 14px;
+      padding-bottom: 2px;
+      border-bottom: 1px solid rgba(255, 255, 255, .5);
+      color: #fff;
+      font-size: .82rem;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .hero-panel-link:hover { border-bottom-color: #fff; }
+    .hero-panel-link .icon { width: 15px; height: 15px; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin: 24px 0 36px;
+    }
+    .stat {
+      padding: 18px 20px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .stat-label {
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .stat-icon {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      flex: none;
+      border-radius: 8px;
+      background: var(--verde-50);
+      color: var(--verde-800);
+    }
+    .stat-icon .icon { width: 17px; height: 17px; }
+    .stat-value {
+      display: block;
+      margin-top: 8px;
+      font-size: 1.7rem;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -.01em;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+    .stat-value-sm { font-size: 1.12rem; padding-top: 6px; }
+    .stat-sub { display: block; margin-top: 3px; font-size: .76rem; color: var(--muted-2); }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+    .section-title { font-size: 1.05rem; font-weight: 600; letter-spacing: -.005em; }
+    .section-sub { margin-top: 3px; font-size: .82rem; color: var(--muted); }
+    .link-arrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex: none;
+      font-size: .84rem;
+      font-weight: 600;
+      color: var(--verde-800);
+      text-decoration: none;
+    }
+    .link-arrow:hover { text-decoration: underline; }
+    .link-arrow .icon { width: 16px; height: 16px; }
+
+    .page-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 22px;
+    }
+    .page-title { font-size: 1.55rem; font-weight: 700; letter-spacing: -.015em; line-height: 1.2; }
+    .page-sub {
+      max-width: 68ch;
+      margin-top: 7px;
+      font-size: .9rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+    .page-head .btn { flex: none; margin-top: 4px; }
+
+    .tabs {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: -1px;
+      padding: 11px 16px;
+      border: 0;
+      border-bottom: 3px solid transparent;
+      background: none;
+      color: var(--muted);
+      font-size: .86rem;
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--verde-900); font-weight: 600; border-bottom-color: var(--verde-800); }
+    .tab:focus-visible { outline: 2px solid var(--verde-800); outline-offset: -2px; }
+    .tab-count {
+      min-width: 20px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: #eef1ee;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 600;
       text-align: center;
-      padding: 80px 20px;
-      color: #4a5568;
+      font-variant-numeric: tabular-nums;
+    }
+    .tab.active .tab-count { background: var(--verde-100); color: var(--verde-900); }
+
+    .filters {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .search { position: relative; flex: 1 1 300px; max-width: 440px; }
+    .search .icon {
+      position: absolute;
+      top: 50%;
+      left: 12px;
+      transform: translateY(-50%);
+      width: 17px;
+      height: 17px;
+      color: var(--muted-2);
+      pointer-events: none;
+    }
+    .search input {
+      width: 100%;
+      height: 38px;
+      padding: 0 12px 0 37px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      font-size: .86rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .search input::placeholder { color: var(--muted-2); }
+    .search input:focus { border-color: var(--verde-700); box-shadow: 0 0 0 3px rgba(35, 117, 66, .13); }
+    .select-wrap { position: relative; }
+    .select-wrap select {
+      height: 38px;
+      padding: 0 36px 0 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      font-size: .86rem;
+      color: var(--text);
+      appearance: none;
+      outline: none;
+      cursor: pointer;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .select-wrap select:focus { border-color: var(--verde-700); box-shadow: 0 0 0 3px rgba(35, 117, 66, .13); }
+    .select-wrap .icon {
+      position: absolute;
+      top: 50%;
+      right: 11px;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: var(--muted-2);
+      pointer-events: none;
+    }
+    .results-count { margin-left: auto; font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .info-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      margin-bottom: 18px;
+      padding: 14px 16px;
+      border: 1px solid #d8e8dc;
+      border-radius: 8px;
+      background: var(--verde-50);
+      color: #245c35;
+      font-size: .85rem;
+      line-height: 1.55;
+    }
+    .info-banner .icon { width: 17px; height: 17px; margin-top: 2px; color: var(--verde-800); }
+    .info-banner strong { color: #17492a; font-weight: 600; }
+    .info-banner-spaced { margin-top: 20px; margin-bottom: 0; }
+
+    .table-card {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+    }
+    .table-scroll { overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+    .data-table th {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: #f3f8f4;
+      color: #4a5a4e;
+      font-size: .71rem;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .data-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #eef1ee;
+      vertical-align: middle;
+    }
+    .data-table tbody tr:last-child td { border-bottom: 0; }
+    .data-table tbody tr:hover { background: #fafcfb; }
+    .cell-title { max-width: 430px; }
+    .row-title {
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      font-weight: 600;
+      line-height: 1.42;
+      color: var(--text);
+    }
+    .row-title a { color: inherit; text-decoration: none; }
+    .row-title a:hover { color: var(--verde-800); text-decoration: underline; }
+    .row-sub { display: block; margin-top: 3px; font-size: .78rem; color: var(--muted-2); }
+    .num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .money { font-weight: 500; }
+    .text-muted { color: var(--muted-2); }
+    .cierre { white-space: nowrap; }
+    .cierre.soon { color: var(--amber-text); font-weight: 600; }
+    .cierre.past { color: var(--red-text); }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      max-width: 100%;
+      padding: 2px 8px;
+      border: 1px solid #e3e7e3;
+      border-radius: 5px;
+      background: #f4f6f4;
+      color: #44504a;
+      font-size: .74rem;
+      font-weight: 500;
+      line-height: 1.5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .empty h2 { font-size: 1.2rem; margin-bottom: 8px; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      font-size: .73rem;
+      font-weight: 600;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+    .badge-ok { background: #e8f4ea; border-color: #cfe6d5; color: #17623a; }
+    .badge-warn { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber-text); }
+    .badge-off { background: #f4f5f4; border-color: #e2e5e2; color: #59615a; }
+    .badge-neutral { background: #f4f5f4; border-color: #e2e5e2; color: var(--muted); }
+
+    .prob { display: flex; flex-direction: column; gap: 5px; min-width: 64px; }
+    .prob-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .prob-track { display: block; width: 64px; height: 4px; overflow: hidden; border-radius: 999px; background: #e9ede9; }
+    .prob-fill { display: block; height: 100%; border-radius: 999px; }
+    .prob-fill.ok, .metric-fill.ok { background: #2e7d32; }
+    .prob-fill.warn, .metric-fill.warn { background: #c98a09; }
+    .prob-fill.low, .metric-fill.low { background: #b42318; }
+    .prob-fill.none, .metric-fill.none { background: #c9d2ca; }
+
+    .cell-action { text-align: right; }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 56px 24px;
+      text-align: center;
+    }
+    .empty-icon {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 14px;
+      border-radius: 50%;
+      background: var(--verde-50);
+      color: var(--verde-800);
+    }
+    .empty-icon .icon { width: 22px; height: 22px; }
+    .empty-state h3 { font-size: 1rem; font-weight: 600; }
+    .empty-state p { max-width: 430px; margin-top: 5px; font-size: .86rem; color: var(--muted); }
+    .empty-state .btn { margin-top: 18px; }
+
+    .table-skeleton { padding: 6px 16px; }
+    .sk-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 16px 0;
+      border-bottom: 1px solid #eef1ee;
+    }
+    .sk-row:last-child { border-bottom: 0; }
+    .sk {
+      height: 12px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #eef1ee 25%, #e3e8e3 50%, #eef1ee 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.6s infinite;
+    }
+    .sk-a { flex: 2 1 220px; }
+    .sk-b { flex: 1 1 90px; max-width: 130px; }
+    .sk-c { width: 70px; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .load-more-wrap { margin-top: 16px; text-align: center; }
+
+    .sources-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .source-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+    }
+    .source-icon {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 9px;
+      background: var(--verde-50);
+      color: var(--verde-800);
+    }
+    .source-icon .icon { width: 20px; height: 20px; }
+    .source-name { font-size: 1rem; font-weight: 600; }
+    .source-desc { flex: 1; font-size: .84rem; line-height: 1.6; color: var(--muted); }
+    .source-meta {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding-top: 14px;
+      border-top: 1px solid #eef1ee;
+    }
+    .source-meta strong {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--verde-900);
+      font-variant-numeric: tabular-nums;
+    }
+    .source-meta span { font-size: .78rem; color: var(--muted-2); }
+    .source-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--verde-800);
+      text-decoration: none;
+    }
+    .source-link:hover { text-decoration: underline; }
+    .source-link .icon { width: 15px; height: 15px; }
+
+    .site-footer { flex: none; border-top: 1px solid var(--border); background: var(--surface); }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px 24px;
+      padding-top: 20px;
+      padding-bottom: 20px;
+      font-size: .78rem;
+      color: var(--muted-2);
+    }
+    .footer-inner a { color: var(--muted); text-decoration: none; }
+    .footer-inner a:hover { color: var(--verde-800); text-decoration: underline; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 6px 14px; }
 
     .toast {
       position: fixed;
-      bottom: 24px;
       right: 24px;
-      background: #276749;
-      color: #9ae6b4;
-      border: 1px solid #2f855a;
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-size: 0.88rem;
+      bottom: 24px;
       z-index: 100;
-      display: none;
-      animation: fadein 0.3s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      max-width: 400px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--verde-800);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      font-size: .85rem;
+      line-height: 1.45;
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .toast.show { opacity: 1; transform: none; pointer-events: auto; }
+    .toast .icon { width: 18px; height: 18px; margin-top: 1px; color: var(--verde-800); }
+    .toast.error { border-left-color: #b42318; }
+    .toast.error .icon { color: #b42318; }
+
+    .modal {
+      width: min(720px, calc(100vw - 32px));
+      max-height: 88vh;
+      padding: 0;
+      border: 0;
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      box-shadow: 0 24px 80px rgba(9, 25, 15, .35);
+      overflow: hidden;
+    }
+    .modal[open] { display: flex; flex-direction: column; }
+    .modal::backdrop { background: rgba(10, 25, 15, .55); }
+    body.modal-open { overflow: hidden; }
+    .modal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+    }
+    .modal-head-main { min-width: 0; }
+    .modal-kicker { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .modal-title { font-size: 1.06rem; font-weight: 600; line-height: 1.45; letter-spacing: -.005em; }
+    .icon-btn {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      flex: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .icon-btn:hover { background: #f4f6f4; color: var(--text); }
+    .icon-btn:focus-visible { outline: 2px solid var(--verde-800); outline-offset: 2px; }
+    .modal-body { padding: 20px 24px 24px; overflow-y: auto; }
+    .modal-section + .modal-section { margin-top: 22px; padding-top: 20px; border-top: 1px solid #eef1ee; }
+    .modal-section h3 {
+      margin-bottom: 10px;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .meta-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 20px; }
+    .meta-label {
+      font-size: .69rem;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--muted-2);
+    }
+    .meta-value { margin-top: 3px; font-size: .86rem; line-height: 1.45; overflow-wrap: anywhere; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .metric-card { padding: 14px; border: 1px solid var(--border); border-radius: 8px; }
+    .metric-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .metric-head span { font-size: .78rem; color: var(--muted); }
+    .metric-head strong { font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .metric-track { height: 6px; margin-top: 9px; overflow: hidden; border-radius: 999px; background: #e9ede9; }
+    .metric-fill { height: 100%; border-radius: 999px; }
+    .metric-note { margin-top: 7px; font-size: .73rem; color: var(--muted-2); }
+    .modal-text { font-size: .87rem; line-height: 1.65; color: var(--text-soft); }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .list-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    .list-grid h4 { margin-bottom: 8px; font-size: .82rem; font-weight: 600; }
+    .detail-list { display: flex; flex-direction: column; gap: 8px; }
+    .detail-list li { display: flex; gap: 8px; font-size: .82rem; line-height: 1.5; color: var(--text-soft); }
+    .detail-list .icon { width: 15px; height: 15px; margin-top: 1px; color: #2e7d32; }
+    .detail-list-warn .icon { color: #b7791f; }
+    .modal-foot {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      background: #fafbfa;
     }
 
-    @keyframes fadein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .settings-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 20px;
+      align-items: start;
+    }
+    .settings-form { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+    .settings-card {
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+    }
+    .settings-head { margin-bottom: 16px; }
+    .settings-head h2 { font-size: 1rem; font-weight: 600; }
+    .settings-head p {
+      max-width: 75ch;
+      margin-top: 5px;
+      font-size: .83rem;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+    .settings-layout .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .settings-layout .field > label { font-size: .8rem; font-weight: 600; color: var(--text-soft); }
+    .field-input {
+      width: 100%;
+      height: 38px;
+      padding: 0 11px;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      font-size: .86rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    textarea.field-input {
+      height: auto;
+      min-height: 110px;
+      padding: 10px 11px;
+      line-height: 1.6;
+      resize: vertical;
+    }
+    .field-input:focus {
+      border-color: var(--verde-700);
+      box-shadow: 0 0 0 3px rgba(35, 117, 66, .13);
+    }
+    .field-hint { font-size: .75rem; line-height: 1.5; color: var(--muted-2); }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px 20px;
+    }
+    .form-grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .form-grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .input-suffix { position: relative; }
+    .input-suffix .field-input { padding-right: 32px; }
+    .input-suffix span {
+      position: absolute;
+      top: 50%;
+      right: 11px;
+      transform: translateY(-50%);
+      font-size: .78rem;
+      color: var(--muted-2);
+      pointer-events: none;
+    }
+    .weights-total { margin-top: 12px; font-size: .8rem; color: var(--muted); }
+    .weights-total strong { color: var(--text); font-variant-numeric: tabular-nums; }
+    .weights-total.warn strong { color: var(--red-text); }
+    .thresholds {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .thresholds legend {
+      padding: 0 6px;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      margin-top: 16px;
+      font-size: .84rem;
+      line-height: 1.5;
+      color: var(--text-soft);
+    }
+    .check-row input { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--verde-800); }
+    .settings-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 2px;
+    }
+    .settings-note { font-size: .78rem; color: var(--muted-2); }
+    .settings-note.error { color: var(--red-text); }
+    .settings-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+    .settings-aside {
+      position: sticky;
+      top: 137px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .settings-aside .settings-head h2 { font-size: .95rem; }
+    .settings-aside .settings-head p { font-size: .8rem; }
+    .settings-aside code {
+      padding: 1px 4px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #f3f6f3;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: .78em;
+    }
+    #btn-reanalizar.is-busy .icon-refresh,
+    #btn-probar-modelo.is-busy .icon-refresh { animation: spin 1s linear infinite; }
+    #probar-estado { margin-top: 10px; overflow-wrap: anywhere; }
+    .status-ok { color: var(--verde-800); }
+    .status-error { color: var(--red-text); }
 
-    .update-info {
-      font-size: 0.78rem;
-      color: #4a5568;
-      margin-left: auto;
+    @media (max-width: 1024px) {
+      .hero { grid-template-columns: minmax(0, 1.3fr) minmax(240px, .8fr); gap: 28px; padding: 32px; }
+      .hero h1 { font-size: 1.55rem; }
+      .brand-divider { display: none; }
+    }
+
+    @media (max-width: 920px) {
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 30px; }
+      .hero { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+      .hero-panel { max-width: 420px; }
+      .data-table, .data-table tbody, .data-table tr, .data-table td { display: block; width: 100%; }
+      .data-table thead { display: none; }
+      .data-table tr { padding: 16px; border-bottom: 1px solid var(--border); }
+      .data-table tr:last-child { border-bottom: 0; }
+      .data-table tr:hover { background: #fff; }
+      .data-table td { padding: 0; border: 0; }
+      .data-table td.cell-title { max-width: none; padding-bottom: 10px; }
+      .data-table td[data-label] {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 4px 0;
+        font-size: .84rem;
+      }
+      .data-table td[data-label]::before {
+        content: attr(data-label);
+        flex: none;
+        color: var(--muted-2);
+        font-size: .8rem;
+        font-weight: 500;
+      }
+      .data-table td.cell-action { padding-top: 12px; }
+      .data-table td.cell-action .btn { width: 100%; }
+      .data-table td[data-label] .prob { flex-direction: row; align-items: center; gap: 10px; }
+      .data-table td[data-label] .prob-track { width: 88px; }
+      .table-scroll { overflow: visible; }
+      .sk-c { display: none; }
+      .settings-layout { grid-template-columns: 1fr; }
+      .settings-aside { position: static; }
+      .form-grid.cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .form-grid.cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 760px) {
+      .container { padding-left: 20px; padding-right: 20px; }
+      .update-stamp { display: none; }
+      .page-head { flex-direction: column; gap: 16px; }
+      .section-head { align-items: flex-start; }
+      .meta-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .list-grid { grid-template-columns: 1fr; }
+      .results-count { margin-left: 0; width: 100%; }
+    }
+
+    @media (max-width: 640px) {
+      main { padding-top: 20px; }
+      .topbar-inner { gap: 12px; padding-top: 12px; padding-bottom: 12px; }
+      .brand { gap: 12px; }
+      .brand-logo { height: 28px; }
+      .brand-title { font-size: .9rem; }
+      .brand-sub { display: none; }
+      .topbar-actions { gap: 10px; }
+      .topbar-actions .btn { width: 38px; padding: 0; }
+      .topbar-actions .btn [data-update-label] { display: none; }
+      .nav-link { height: 44px; padding: 0 10px; font-size: .8rem; }
+      .settings-card { padding: 18px; }
+      .form-grid, .form-grid.cols-3 { grid-template-columns: 1fr; }
+      .form-grid.cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .settings-actions { flex-direction: column; align-items: stretch; }
+      .settings-buttons { justify-content: flex-end; }
+      .settings-buttons .btn { flex: 1 1 auto; }
+      .hero { padding: 26px 22px; border-radius: 10px; }
+      .hero h1 { font-size: 1.4rem; }
+      .hero-text { font-size: .86rem; }
+      .hero-actions .btn { flex: 1 1 auto; }
+      .stats { gap: 12px; }
+      .stat { padding: 15px 16px; }
+      .stat-value { font-size: 1.45rem; }
+      .stat-value-sm { font-size: 1rem; }
+      .stat-icon { width: 28px; height: 28px; }
+      .page-title { font-size: 1.35rem; }
+      .tabs { flex-wrap: wrap; gap: 8px; margin-bottom: 16px; border-bottom: 0; overflow: visible; }
+      .tab {
+        margin: 0;
+        padding: 8px 13px;
+        border: 1px solid var(--border-strong);
+        border-radius: 999px;
+        background: #fff;
+        font-size: .82rem;
+      }
+      .tab.active { background: var(--verde-800); border-color: var(--verde-800); color: #fff; }
+      .tab.active .tab-count { background: rgba(255, 255, 255, .2); color: #fff; }
+      .filters { gap: 10px; }
+      .search { flex-basis: 100%; max-width: none; }
+      .select-wrap, .select-wrap select { width: 100%; }
+      .modal { width: calc(100vw - 20px); max-height: 92vh; }
+      .modal-head { padding: 16px 18px 14px; }
+      .modal-body { padding: 16px 18px 20px; }
+      .meta-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+      .metrics-grid { grid-template-columns: 1fr; }
+      .modal-foot { padding: 12px 14px; }
+      .modal-foot .btn { flex: 1 1 auto; }
+      .toast { right: 16px; left: 16px; bottom: 16px; max-width: none; }
+      .footer-inner { justify-content: center; text-align: center; }
+    }
+
+    @media (max-width: 420px) {
+      .container { padding-left: 16px; padding-right: 16px; }
+      .hero-actions .btn { flex-basis: 100%; }
+      .thresholds { grid-template-columns: 1fr; }
+      .stat-label { font-size: .68rem; }
+      .stat-value-sm { font-size: .92rem; }
+      .data-table td[data-label] .prob-track { width: 64px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+      }
     }
   </style>
 </head>
 <body>
+<svg xmlns="http://www.w3.org/2000/svg" class="svg-sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-refresh" viewBox="0 0 24 24">
+    <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/>
+    <path d="M20.5 3.5v5h-5"/>
+  </symbol>
+  <symbol id="i-search" viewBox="0 0 24 24">
+    <circle cx="11" cy="11" r="7"/>
+    <path d="m20 20-3.2-3.2"/>
+  </symbol>
+  <symbol id="i-arrow-right" viewBox="0 0 24 24">
+    <path d="M4 12h16"/>
+    <path d="m13 5 7 7-7 7"/>
+  </symbol>
+  <symbol id="i-external" viewBox="0 0 24 24">
+    <path d="M14 4h6v6"/>
+    <path d="M20 4 10 14"/>
+    <path d="M19 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4"/>
+  </symbol>
+  <symbol id="i-x" viewBox="0 0 24 24">
+    <path d="m6 6 12 12"/>
+    <path d="M18 6 6 18"/>
+  </symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8.5"/>
+    <path d="M12 7.5V12l3 1.8"/>
+  </symbol>
+  <symbol id="i-database" viewBox="0 0 24 24">
+    <ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/>
+    <path d="M4.5 5.5v6.5c0 1.55 3.36 2.8 7.5 2.8s7.5-1.25 7.5-2.8V5.5"/>
+    <path d="M4.5 12v6.5c0 1.55 3.36 2.8 7.5 2.8s7.5-1.25 7.5-2.8V12"/>
+  </symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24">
+    <path d="m12 3 9 4.5-9 4.5L3 7.5 12 3Z"/>
+    <path d="m3 12 9 4.5 9-4.5"/>
+    <path d="m3 16.5 9 4.5 9-4.5"/>
+  </symbol>
+  <symbol id="i-check-circle" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8.5"/>
+    <path d="m8.5 12 2.4 2.4 4.6-4.8"/>
+  </symbol>
+  <symbol id="i-alert-circle" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8.5"/>
+    <path d="M12 7.8v4.7"/>
+    <path d="M12 16.2h.01"/>
+  </symbol>
+  <symbol id="i-info" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8.5"/>
+    <path d="M12 11v5"/>
+    <path d="M12 7.9h.01"/>
+  </symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24">
+    <path d="m6 9 6 6 6-6"/>
+  </symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24">
+    <path d="M4 13h4l2 3h4l2-3h4"/>
+    <path d="M6.6 5h10.8l2.6 8v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4l2.6-8Z"/>
+  </symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24">
+    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"/>
+    <path d="M14 3v5h5"/>
+    <path d="M9 13h6"/>
+    <path d="M9 17h6"/>
+  </symbol>
+  <symbol id="i-award" viewBox="0 0 24 24">
+    <circle cx="12" cy="9" r="5.5"/>
+    <path d="m8.5 13.5-1.4 7 4.9-2.4 4.9 2.4-1.4-7"/>
+  </symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8.5"/>
+    <path d="M3.5 12h17"/>
+    <path d="M12 3.5c2.2 2.3 3.4 5.3 3.4 8.5s-1.2 6.2-3.4 8.5c-2.2-2.3-3.4-5.3-3.4-8.5S9.8 5.8 12 3.5Z"/>
+  </symbol>
+  <symbol id="i-save" viewBox="0 0 24 24">
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/>
+    <path d="M17 21v-8H7v8"/>
+    <path d="M7 3v5h8"/>
+  </symbol>
+</svg>
 
-<header>
-  <h1>📡 Radar de Convocatorias <span>— Facultad de Ingeniería UdeA</span></h1>
-  <span class="badge" id="update-badge">Cargando...</span>
-</header>
-
-<div class="stats-bar">
-  <div class="stat">
-    <div class="stat-num" id="stat-total">—</div>
-    <div class="stat-label">Total convocatorias</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num" id="stat-relevantes">—</div>
-    <div class="stat-label">Relevantes para la facultad</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num" id="stat-aplicar">—</div>
-    <div class="stat-label">Recomendadas APLICAR</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num" id="stat-update">—</div>
-    <div class="stat-label">Última actualización</div>
-  </div>
+<div class="app-header">
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="#panel" aria-label="Ir al panel principal">
+        <img class="brand-logo" src="/static/udea-logo.png" alt="Universidad de Antioquia">
+        <span class="brand-divider" aria-hidden="true"></span>
+        <span class="brand-text">
+          <span class="brand-title">Radar de Convocatorias</span>
+          <span class="brand-sub">Facultad de Ingeniería · Universidad de Antioquia</span>
+        </span>
+      </a>
+      <div class="topbar-actions">
+        <span class="update-stamp">
+          <svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>
+          <span id="update-stamp-text">Cargando…</span>
+        </span>
+        <button class="btn btn-ghost-light js-update" type="button" aria-label="Actualizar datos">
+          <svg class="icon icon-refresh" aria-hidden="true"><use href="#i-refresh"/></svg>
+          <span data-update-label>Actualizar datos</span>
+        </button>
+      </div>
+    </div>
+  </header>
+  <nav class="mainnav" aria-label="Navegación principal">
+    <div class="container mainnav-inner">
+      <a class="nav-link" data-view="panel" href="#panel">Panel</a>
+      <a class="nav-link" data-view="convocatorias" href="#convocatorias">Convocatorias</a>
+      <a class="nav-link" data-view="fuentes" href="#fuentes">Fuentes</a>
+      <a class="nav-link" data-view="ajustes" href="#ajustes">Ajustes</a>
+    </div>
+  </nav>
 </div>
 
-<div class="toolbar">
-  <input type="text" id="buscar" placeholder="🔍 Buscar convocatoria..." style="min-width:220px">
-  <select id="filtro-rec">
-    <option value="">Todas las recomendaciones</option>
-    <option value="APLICAR">✅ Aplicar</option>
-    <option value="EVALUAR">⚠️ Evaluar</option>
-    <option value="NO_APLICAR">❌ No aplicar</option>
-  </select>
-  <select id="filtro-fuente">
-    <option value="">Todas las fuentes</option>
-    <option value="SECOP II">SECOP II</option>
-    <option value="Minciencias">Minciencias</option>
-    <option value="Regalías SGR">Regalías SGR</option>
-  </select>
-  <button class="btn btn-primary" id="btn-actualizar" onclick="actualizarDatos()">
-    <span id="btn-text">🔄 Actualizar datos</span>
-    <div class="spinner" id="spinner"></div>
-  </button>
-  <button class="btn btn-outline" onclick="cargarConvocatorias()">↺ Recargar vista</button>
-</div>
+<main class="container">
 
-<main>
-  <div class="grid" id="grid"></div>
-  <div class="empty" id="empty" style="display:none">
-    <h2>Sin datos aún</h2>
-    <p>Haz clic en "Actualizar datos" para obtener las convocatorias.</p>
-  </div>
+  <section class="view" id="view-panel" aria-labelledby="panel-title">
+    <div class="hero">
+      <div class="hero-copy">
+        <p class="hero-eyebrow">Universidad de Antioquia · Facultad de Ingeniería</p>
+        <h1 id="panel-title">Radar de convocatorias</h1>
+        <p class="hero-text">
+          Reúne y prioriza las convocatorias de financiamiento y contratación pública disponibles
+          para la Facultad. El análisis de afinidad, requisitos y probabilidad de adjudicación
+          permite enfocar el esfuerzo donde existe una oportunidad real.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-light" href="#convocatorias">
+            Explorar convocatorias
+            <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+          </a>
+          <button class="btn btn-ghost-light js-update" type="button" aria-label="Actualizar datos">
+            <svg class="icon icon-refresh" aria-hidden="true"><use href="#i-refresh"/></svg>
+            <span data-update-label>Actualizar datos</span>
+          </button>
+        </div>
+      </div>
+      <aside class="hero-panel" aria-label="Estado del análisis">
+        <p class="hero-panel-label">
+          <svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>
+          Convocatorias por evaluar
+        </p>
+        <p class="hero-panel-value" id="hero-evaluar">—</p>
+        <p class="hero-panel-hint">Requieren revisión del equipo</p>
+        <a class="hero-panel-link" href="#convocatorias" data-rec-link="EVALUAR">
+          Revisar listado
+          <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+        </a>
+      </aside>
+    </div>
+
+    <div class="stats" aria-label="Indicadores generales">
+      <div class="stat">
+        <div class="stat-head">
+          <span class="stat-label">Total convocatorias</span>
+          <span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#i-database"/></svg></span>
+        </div>
+        <span class="stat-value" id="stat-total">—</span>
+        <span class="stat-sub">Registradas en el sistema</span>
+      </div>
+      <div class="stat">
+        <div class="stat-head">
+          <span class="stat-label">Relevantes</span>
+          <span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg></span>
+        </div>
+        <span class="stat-value" id="stat-relevantes">—</span>
+        <span class="stat-sub">Con afinidad identificada</span>
+      </div>
+      <div class="stat">
+        <div class="stat-head">
+          <span class="stat-label">Recomendadas</span>
+          <span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#i-check-circle"/></svg></span>
+        </div>
+        <span class="stat-value" id="stat-aplicar">—</span>
+        <span class="stat-sub">Priorizadas por el análisis</span>
+      </div>
+      <div class="stat">
+        <div class="stat-head">
+          <span class="stat-label">Última actualización</span>
+          <span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg></span>
+        </div>
+        <span class="stat-value stat-value-sm" id="stat-ultima">—</span>
+        <span class="stat-sub">Último registro guardado</span>
+      </div>
+    </div>
+
+    <section aria-labelledby="destacadas-title">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title" id="destacadas-title">Mayor probabilidad de adjudicación</h2>
+          <p class="section-sub">Convocatorias ordenadas según el análisis de afinidad con la Facultad.</p>
+        </div>
+        <a class="link-arrow" href="#convocatorias">
+          Ver todas
+          <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+        </a>
+      </div>
+      <div class="table-card" id="panel-table">
+        <div class="table-skeleton" role="status" aria-label="Cargando convocatorias">
+          <div class="sk-row"><span class="sk sk-a"></span><span class="sk sk-b"></span><span class="sk sk-c"></span></div>
+          <div class="sk-row"><span class="sk sk-a"></span><span class="sk sk-b"></span><span class="sk sk-c"></span></div>
+          <div class="sk-row"><span class="sk sk-a"></span><span class="sk sk-b"></span><span class="sk sk-c"></span></div>
+          <div class="sk-row"><span class="sk sk-a"></span><span class="sk sk-b"></span><span class="sk sk-c"></span></div>
+          <div class="sk-row"><span class="sk sk-a"></span><span class="sk sk-b"></span><span class="sk sk-c"></span></div>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <section class="view" id="view-convocatorias" aria-labelledby="convocatorias-title" hidden>
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" id="convocatorias-title">Convocatorias</h1>
+        <p class="page-sub">
+          Consulta el detalle, el estado del análisis y las condiciones de cada oportunidad.
+          Los resultados se ordenan por probabilidad de adjudicación.
+        </p>
+      </div>
+<button class="btn btn-primary js-update" type="button" aria-label="Actualizar datos">
+        <svg class="icon icon-refresh" aria-hidden="true"><use href="#i-refresh"/></svg>
+        <span data-update-label>Actualizar datos</span>
+      </button>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Filtrar por recomendación">
+      <button class="tab active" type="button" aria-pressed="true" data-rec="">
+        Todas <span class="tab-count" data-count="all">—</span>
+      </button>
+      <button class="tab" type="button" aria-pressed="false" data-rec="APLICAR">
+        Recomendadas <span class="tab-count" data-count="APLICAR">—</span>
+      </button>
+      <button class="tab" type="button" aria-pressed="false" data-rec="EVALUAR">
+        Por evaluar <span class="tab-count" data-count="EVALUAR">—</span>
+      </button>
+      <button class="tab" type="button" aria-pressed="false" data-rec="NO_APLICAR">
+        No aplicar <span class="tab-count" data-count="NO_APLICAR">—</span>
+      </button>
+    </div>
+
+    <div class="filters">
+      <div class="search">
+        <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
+        <input id="buscar" type="search" placeholder="Buscar por título, entidad, área o departamento" aria-label="Buscar convocatorias" autocomplete="off">
+      </div>
+      <div class="select-wrap">
+        <select id="filtro-fuente" aria-label="Filtrar por fuente">
+          <option value="">Todas las fuentes</option>
+        </select>
+        <svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+      </div>
+      <p class="results-count" id="results-count" aria-live="polite"></p>
+    </div>
+
+    <div class="info-banner">
+      <svg class="icon" aria-hidden="true"><use href="#i-info"/></svg>
+      <p>
+        <strong>Aquí encontrarás todas las convocatorias.</strong>
+        Se incluyen las publicadas en SECOP II, Minciencias y Regalías SGR. Usa los filtros
+        y el buscador para priorizar la revisión del equipo.
+      </p>
+    </div>
+
+    <div class="table-card" id="tabla-convocatorias">
+      <div class="table-skeleton" role="status" aria-label="Cargando convocatorias">
+        <div class="sk-row"><span class="sk sk-a"></span><span class="sk sk-b"></span><span class="sk sk-c"></span></div>
+        <div class="sk-row"><span class="sk sk-a"></span><span class="sk sk-b"></span><span class="sk sk-c"></span></div>
+        <div class="sk-row"><span class="sk sk-a"></span><span class="sk sk-b"></span><span class="sk sk-c"></span></div>
+        <div class="sk-row"><span class="sk sk-a"></span><span class="sk sk-b"></span><span class="sk sk-c"></span></div>
+        <div class="sk-row"><span class="sk sk-a"></span><span class="sk sk-b"></span><span class="sk sk-c"></span></div>
+        <div class="sk-row"><span class="sk sk-a"></span><span class="sk sk-b"></span><span class="sk sk-c"></span></div>
+      </div>
+    </div>
+    <div class="load-more-wrap" id="load-more-wrap" hidden>
+      <button class="btn btn-outline" type="button" id="btn-mas">Mostrar más convocatorias</button>
+    </div>
+  </section>
+
+  <section class="view" id="view-fuentes" aria-labelledby="fuentes-title" hidden>
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" id="fuentes-title">Fuentes de información</h1>
+        <p class="page-sub">
+          Origen de los datos que alimentan el radar. Los registros se consultan y
+          clasifican por fuente antes de registrarse en el sistema.
+        </p>
+      </div>
+    </div>
+    <div class="sources-grid" id="sources-grid"></div>
+    <div class="info-banner info-banner-spaced">
+      <svg class="icon" aria-hidden="true"><use href="#i-info"/></svg>
+      <p>
+        <strong>Actualización manual.</strong>
+        Al actualizar, el sistema consulta cada fuente, analiza las convocatorias nuevas con
+        el perfil de la Facultad y conserva el histórico de registros.
+      </p>
+    </div>
+  </section>
+
+  <section class="view" id="view-ajustes" aria-labelledby="ajustes-title" hidden>
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" id="ajustes-title">Configuración del análisis</h1>
+        <p class="page-sub">
+          Define el perfil institucional, los criterios y los umbrales que usa el modelo
+          para evaluar cada convocatoria. La configuración se guarda en el servidor.
+        </p>
+      </div>
+      <button class="btn btn-primary" type="submit" form="form-ajustes" id="btn-guardar-ajustes-top" disabled>
+        <svg class="icon" aria-hidden="true"><use href="#i-save"/></svg>
+        <span id="btn-guardar-top-label">Guardar cambios</span>
+      </button>
+    </div>
+
+    <div class="settings-layout">
+      <form class="settings-form" id="form-ajustes" novalidate>
+        <section class="settings-card">
+          <div class="settings-head">
+            <h2>Perfil institucional</h2>
+            <p>
+              Texto que se envía al modelo en cada análisis. Describe programas, grupos
+              de investigación, capacidades y experiencia de la Facultad.
+            </p>
+          </div>
+          <div class="field">
+            <label for="cfg-perfil">Perfil y descripción institucional</label>
+            <textarea class="field-input" id="cfg-perfil" rows="14" spellcheck="true"></textarea>
+            <p class="field-hint">
+              Mínimo 20 caracteres. Los cambios se aplican en los próximos análisis
+              o al reanalizar los registros.
+            </p>
+          </div>
+        </section>
+
+        <section class="settings-card">
+          <div class="settings-head">
+            <h2>Criterios de evaluación</h2>
+            <p>
+              Pesos relativos que el modelo debe considerar al estimar la probabilidad
+              de adjudicación y el cumplimiento de requisitos.
+            </p>
+          </div>
+          <div class="form-grid cols-4">
+            <div class="field">
+              <label for="cfg-afinidad">Afinidad temática</label>
+              <div class="input-suffix">
+                <input class="field-input" id="cfg-afinidad" type="number" min="0" max="100" step="1" inputmode="numeric">
+                <span>%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="cfg-experiencia">Experiencia y capacidades</label>
+              <div class="input-suffix">
+                <input class="field-input" id="cfg-experiencia" type="number" min="0" max="100" step="1" inputmode="numeric">
+                <span>%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="cfg-requisitos">Cumplimiento de requisitos</label>
+              <div class="input-suffix">
+                <input class="field-input" id="cfg-requisitos" type="number" min="0" max="100" step="1" inputmode="numeric">
+                <span>%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="cfg-viabilidad">Viabilidad y competencia</label>
+              <div class="input-suffix">
+                <input class="field-input" id="cfg-viabilidad" type="number" min="0" max="100" step="1" inputmode="numeric">
+                <span>%</span>
+              </div>
+            </div>
+          </div>
+          <p class="weights-total" id="peso-total-wrap">
+            Suma de pesos: <strong id="peso-total">—</strong>.
+            <span>Se normalizan automáticamente.</span>
+          </p>
+        </section>
+
+        <section class="settings-card">
+          <div class="settings-head">
+            <h2>Umbrales de recomendación</h2>
+            <p>
+              Reglas que convierten la probabilidad y el cumplimiento calculados por el
+              modelo en una recomendación final.
+            </p>
+          </div>
+          <div class="form-grid">
+            <fieldset class="thresholds">
+              <legend>Aplicar</legend>
+              <div class="field">
+                <label for="cfg-aplicar-prob">Probabilidad ≥</label>
+                <div class="input-suffix">
+                  <input class="field-input" id="cfg-aplicar-prob" type="number" min="0" max="100" step="1" inputmode="numeric">
+                  <span>%</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="cfg-aplicar-cump">Cumplimiento ≥</label>
+                <div class="input-suffix">
+                  <input class="field-input" id="cfg-aplicar-cump" type="number" min="0" max="100" step="1" inputmode="numeric">
+                  <span>%</span>
+                </div>
+              </div>
+            </fieldset>
+            <fieldset class="thresholds">
+              <legend>Descartar</legend>
+              <div class="field">
+                <label for="cfg-descartar-prob">Probabilidad &lt;</label>
+                <div class="input-suffix">
+                  <input class="field-input" id="cfg-descartar-prob" type="number" min="0" max="100" step="1" inputmode="numeric">
+                  <span>%</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="cfg-descartar-cump">Cumplimiento &lt;</label>
+                <div class="input-suffix">
+                  <input class="field-input" id="cfg-descartar-cump" type="number" min="0" max="100" step="1" inputmode="numeric">
+                  <span>%</span>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+          <label class="check-row" for="cfg-ajustar">
+            <input id="cfg-ajustar" type="checkbox">
+            <span>Aplicar estos umbrales a la recomendación final</span>
+          </label>
+          <p class="field-hint">
+            Si se desactiva, se conserva la recomendación del modelo. Si se activa, la
+            recomendación se recalcula con los umbrales definidos arriba.
+          </p>
+        </section>
+
+        <section class="settings-card">
+          <div class="settings-head">
+            <h2>Parámetros del modelo</h2>
+            <p>Configuración técnica del análisis. Normalmente no requiere cambios.</p>
+          </div>
+          <div class="form-grid cols-3">
+            <div class="field">
+              <label for="cfg-modelo">Modelo en OpenRouter</label>
+              <input class="field-input" id="cfg-modelo" type="text" spellcheck="false">
+              <p class="field-hint">Identificador del modelo, por ejemplo google/gemini-2.5-flash-lite.</p>
+            </div>
+            <div class="field">
+              <label for="cfg-temperatura">Temperatura</label>
+              <input class="field-input" id="cfg-temperatura" type="number" min="0" max="1" step="0.1" inputmode="decimal">
+              <p class="field-hint">Entre 0 y 1. Valores bajos producen respuestas más estables.</p>
+            </div>
+            <div class="field">
+              <label for="cfg-limite">Convocatorias SECOP por actualización</label>
+              <input class="field-input" id="cfg-limite" type="number" min="1" max="50" step="1" inputmode="numeric">
+              <p class="field-hint">Máximo de procesos SECOP consultados en cada actualización.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-card">
+          <div class="settings-head">
+            <h2>Instrucciones adicionales</h2>
+            <p>
+              Reglas opcionales que se agregan al análisis. Puedes usarlas para excluir
+              estados, zonas o modalidades.
+            </p>
+          </div>
+          <div class="field">
+            <label for="cfg-instrucciones">Instrucciones para el modelo</label>
+            <textarea class="field-input" id="cfg-instrucciones" rows="5"></textarea>
+            <p class="field-hint">
+              Opcional. Se envían después de los criterios y antes de los datos de la convocatoria.
+            </p>
+          </div>
+        </section>
+
+        <div class="settings-actions">
+          <p class="settings-note" id="ajustes-estado" role="status" aria-live="polite">Cargando configuración…</p>
+          <div class="settings-buttons">
+            <button class="btn btn-outline" type="button" id="btn-restaurar">Restaurar valores</button>
+            <button class="btn btn-primary" type="submit" id="btn-guardar-ajustes" disabled>
+              <svg class="icon" aria-hidden="true"><use href="#i-save"/></svg>
+              <span id="btn-guardar-label">Guardar cambios</span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <aside class="settings-aside" aria-label="Acciones de configuración">
+        <section class="settings-card">
+          <div class="settings-head">
+            <h2>Reanalizar registros</h2>
+            <p>
+              Vuelve a evaluar las convocatorias ya registradas con el perfil, los criterios
+              y los umbrales actuales. Consume llamadas al modelo y puede tardar varios minutos.
+            </p>
+          </div>
+          <button class="btn btn-outline" type="button" id="btn-reanalizar">
+            <svg class="icon icon-refresh" aria-hidden="true"><use href="#i-refresh"/></svg>
+            Reanalizar registros
+          </button>
+        </section>
+        <section class="settings-card">
+          <div class="settings-head">
+            <h2>Conexión con el modelo</h2>
+            <p>Comprueba que la clave de OpenRouter y el modelo guardado responden correctamente.</p>
+          </div>
+          <button class="btn btn-outline" type="button" id="btn-probar-modelo">
+            <svg class="icon icon-refresh" aria-hidden="true"><use href="#i-refresh"/></svg>
+            Probar conexión
+          </button>
+          <p class="field-hint" id="probar-estado" role="status" aria-live="polite">
+            Se prueba la configuración guardada.
+          </p>
+        </section>
+        <section class="settings-card">
+          <div class="settings-head">
+            <h2>Persistencia</h2>
+            <p>
+              La configuración se guarda en <code>data/ajustes.json</code>.
+              El proyecto no requiere base de datos.
+            </p>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </section>
+
 </main>
 
-<div class="toast" id="toast"></div>
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <span>Universidad de Antioquia · Facultad de Ingeniería</span>
+    <span class="footer-links">
+      <a href="https://www.datos.gov.co/resource/p6dx-8zbt.json" target="_blank" rel="noopener">SECOP II</a>
+      <a href="https://minciencias.gov.co/convocatorias/todas" target="_blank" rel="noopener">Minciencias</a>
+      <span>Regalías SGR</span>
+    </span>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<dialog class="modal" id="detalle-modal" aria-labelledby="detalle-title">
+  <div class="modal-head">
+    <div class="modal-head-main">
+      <div class="modal-kicker" id="detalle-kicker"></div>
+      <h2 class="modal-title" id="detalle-title"></h2>
+    </div>
+    <button class="icon-btn" type="button" data-close aria-label="Cerrar detalle">
+      <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
+    </button>
+  </div>
+  <div class="modal-body" id="detalle-body"></div>
+  <div class="modal-foot">
+    <a class="btn btn-primary" id="detalle-link" href="#" target="_blank" rel="noopener">
+      Abrir convocatoria
+      <svg class="icon" aria-hidden="true"><use href="#i-external"/></svg>
+    </a>
+    <button class="btn btn-outline" type="button" data-close>Cerrar</button>
+  </div>
+</dialog>
 
 <script>
-  let todas = [];
+  const state = {
+    data: [],
+    ajustes: null,
+    rec: '',
+    fuente: '',
+    q: '',
+    limit: 12,
+    busy: false
+  };
 
-  async function cargarStats() {
-    const r = await fetch('/api/stats');
-    const s = await r.json();
-    document.getElementById('stat-total').textContent = s.total;
-    document.getElementById('stat-relevantes').textContent = s.relevantes;
-    document.getElementById('stat-aplicar').textContent = s.aplicar;
-    const fecha = s.ultima_actualizacion === 'Nunca' ? 'Nunca' :
-      new Date(s.ultima_actualizacion).toLocaleDateString('es-CO');
-    document.getElementById('stat-update').textContent = fecha;
-    document.getElementById('update-badge').textContent = `Actualizado: ${fecha}`;
+  const VIEWS = ['panel', 'convocatorias', 'fuentes', 'ajustes'];
+  const CAMPOS_PESO = ['afinidad', 'experiencia', 'requisitos', 'viabilidad'];
+  const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  const REC_LABELS = { APLICAR: 'Aplicar', EVALUAR: 'Evaluar', NO_APLICAR: 'No aplicar' };
+  const SOURCES = [
+    {
+      key: 'SECOP II',
+      name: 'SECOP II',
+      icon: 'i-file-text',
+      desc: 'Sistema Electrónico para la Contratación Pública. Concentra los procesos de contratación publicados por las entidades del Estado colombiano.',
+      href: 'https://www.datos.gov.co/resource/p6dx-8zbt.json',
+      linkLabel: 'Consultar dataset'
+    },
+    {
+      key: 'Minciencias',
+      name: 'Minciencias',
+      icon: 'i-award',
+      desc: 'Convocatorias de financiación para investigación, innovación y formación de capital humano del Ministerio de Ciencia, Tecnología e Innovación.',
+      href: 'https://minciencias.gov.co/convocatorias/todas',
+      linkLabel: 'Consultar convocatorias'
+    },
+    {
+      key: 'Regalías SGR',
+      name: 'Regalías SGR',
+      icon: 'i-globe',
+      desc: 'Convocatorias de ciencia, tecnología e innovación financiadas con la Asignación para la CTI del Sistema General de Regalías.',
+      href: 'https://minciencias.gov.co/convocatorias/todas',
+      linkLabel: 'Consultar convocatorias'
+    }
+  ];
+
+  const currency = new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0
+  });
+  const integer = new Intl.NumberFormat('es-CO');
+
+  const $ = (selector, root) => (root || document).querySelector(selector);
+  const $$ = (selector, root) => Array.from((root || document).querySelectorAll(selector));
+
+  function esc(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
-  async function cargarConvocatorias() {
-    const r = await fetch('/api/convocatorias');
-    todas = await r.json();
-    renderizar(todas);
-    cargarStats();
+  function icon(name, cls) {
+    return '<svg class="icon ' + (cls || '') + '" aria-hidden="true"><use href="#' + name + '"/></svg>';
   }
 
-  function renderizar(datos) {
-    const grid = document.getElementById('grid');
-    const empty = document.getElementById('empty');
+  function normalize(value) {
+    return String(value == null ? '' : value)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
 
-    if (!datos.length) {
-      grid.innerHTML = '';
-      empty.style.display = 'block';
+  function analisisDe(c) {
+    return (c && c.analisis) || {};
+  }
+
+  function recomendacionDe(c) {
+    return analisisDe(c).recomendacion || '';
+  }
+
+  function probabilidadDe(c) {
+    const n = Number(analisisDe(c).probabilidad_ganar);
+    return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : null;
+  }
+
+  function claseNivel(valor) {
+    if (valor == null) return 'none';
+    if (valor >= 70) return 'ok';
+    if (valor >= 40) return 'warn';
+    return 'low';
+  }
+
+  function parseFecha(raw) {
+    if (!raw) return null;
+    const match = String(raw).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return null;
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+
+  function formatFecha(fecha) {
+    if (!fecha) return '';
+    return fecha.getDate() + ' ' + MESES[fecha.getMonth()] + ' ' + fecha.getFullYear();
+  }
+
+  function formatFechaHora(fecha) {
+    if (!fecha) return '';
+    const hh = String(fecha.getHours()).padStart(2, '0');
+    const mm = String(fecha.getMinutes()).padStart(2, '0');
+    return formatFecha(fecha) + ' · ' + hh + ':' + mm;
+  }
+
+  function montoTexto(value) {
+    const n = Number(value);
+    if (value == null || value === '' || !Number.isFinite(n) || n <= 0) return 'No registrado';
+    return currency.format(n);
+  }
+
+  function montoHTML(value) {
+    const texto = montoTexto(value);
+    if (texto === 'No registrado') return '<span class="text-muted">No registrado</span>';
+    return '<span class="money">' + esc(texto) + '</span>';
+  }
+
+  function badgeRecomendacion(rec) {
+    if (!rec) return '<span class="badge badge-neutral">Sin analizar</span>';
+    const clase = rec === 'APLICAR' ? 'ok' : rec === 'EVALUAR' ? 'warn' : 'off';
+    return '<span class="badge badge-' + clase + '">' + esc(REC_LABELS[rec] || rec) + '</span>';
+  }
+
+  function chipFuente(fuente) {
+    return '<span class="chip">' + esc(fuente || 'Sin fuente') + '</span>';
+  }
+
+  function ultimaActualizacion() {
+    let latest = null;
+    state.data.forEach(c => {
+      if (!c.guardado_en) return;
+      const fecha = new Date(c.guardado_en);
+      if (isNaN(fecha.getTime())) return;
+      if (!latest || fecha > latest) latest = fecha;
+    });
+    return latest;
+  }
+
+  function filtradas() {
+    const q = normalize(state.q);
+    return state.data
+      .map((c, i) => ({ c, i }))
+      .filter(({ c }) => {
+        const a = analisisDe(c);
+        if (state.rec && a.recomendacion !== state.rec) return false;
+        if (state.fuente && c.fuente !== state.fuente) return false;
+        if (q) {
+          const text = normalize([
+            c.titulo,
+            c.entidad,
+            c.departamento,
+            c.modalidad,
+            a.resumen,
+            (a.areas_relevantes || []).join(' ')
+          ].join(' '));
+          if (!text.includes(q)) return false;
+        }
+        return true;
+      });
+  }
+
+  function skeletonHTML(rows) {
+    let html = '<div class="table-skeleton" role="status" aria-label="Cargando convocatorias">';
+    for (let i = 0; i < (rows || 5); i++) {
+      html += '<div class="sk-row"><span class="sk sk-a"></span><span class="sk sk-b"></span><span class="sk sk-c"></span></div>';
+    }
+    return html + '</div>';
+  }
+
+  function emptyStateHTML(title, text, actionHTML) {
+    return '<div class="empty-state">' +
+      '<div class="empty-icon">' + icon('i-inbox') + '</div>' +
+      '<h3>' + esc(title) + '</h3>' +
+      '<p>' + esc(text) + '</p>' +
+      (actionHTML || '') +
+      '</div>';
+  }
+
+  function errorStateHTML() {
+    return emptyStateHTML(
+      'No se pudo cargar la información',
+      'Verifica la conexión con el servidor e inténtalo de nuevo.',
+      '<button class="btn btn-primary" type="button" data-retry>' + icon('i-refresh') + 'Reintentar</button>'
+    );
+  }
+
+  function probCell(c) {
+    const prob = probabilidadDe(c);
+    if (prob == null) return '<span class="text-muted">—</span>';
+    const nivel = claseNivel(prob);
+    return '<div class="prob">' +
+      '<span class="prob-value">' + prob + '%</span>' +
+      '<span class="prob-track"><span class="prob-fill ' + nivel + '" style="width:' + prob + '%"></span></span>' +
+      '</div>';
+  }
+
+  function cierreCell(raw) {
+    const fecha = parseFecha(raw);
+    if (!fecha) return '<span class="text-muted">No registrada</span>';
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const dias = Math.round((fecha - hoy) / 86400000);
+    const clase = dias < 0 ? 'past' : dias <= 7 ? 'soon' : '';
+    return '<span class="cierre ' + clase + '">' + esc(formatFecha(fecha)) + '</span>';
+  }
+
+  function rowHTML(c, index, cols) {
+    const a = analisisDe(c);
+    const titulo = c.titulo || 'Convocatoria sin título';
+    const titleHTML = c.url
+      ? '<a href="' + esc(c.url) + '" target="_blank" rel="noopener">' + esc(titulo) + '</a>'
+      : esc(titulo);
+    const entidad = c.entidad ? '<span class="row-sub">' + esc(c.entidad) + '</span>' : '';
+
+    let cells = '<td class="cell-title"><div class="row-title">' + titleHTML + '</div>' + entidad + '</td>';
+    cells += '<td data-label="Fuente">' + chipFuente(c.fuente) + '</td>';
+    if (cols.monto) cells += '<td class="num" data-label="Monto">' + montoHTML(c.monto) + '</td>';
+    if (cols.departamento) {
+      cells += '<td data-label="Departamento">' +
+        (c.departamento ? esc(c.departamento) : '<span class="text-muted">No definido</span>') +
+        '</td>';
+    }
+    if (cols.cierre) cells += '<td data-label="Cierre">' + cierreCell(c.fecha_cierre) + '</td>';
+    cells += '<td data-label="Probabilidad">' + probCell(c) + '</td>';
+    cells += '<td data-label="Estado">' + badgeRecomendacion(a.recomendacion) + '</td>';
+    cells += '<td class="cell-action"><button class="btn btn-outline btn-sm" type="button" data-detalle="' + index + '" aria-label="Ver detalle de ' + esc(titulo) + '">Detalle</button></td>';
+
+    return '<tr>' + cells + '</tr>';
+  }
+
+  function buildTable(items, cols, emptyTitle, emptyText, emptyAction) {
+    if (!items.length) return emptyStateHTML(emptyTitle, emptyText, emptyAction);
+
+    const heads = ['Convocatoria', 'Fuente'];
+    if (cols.monto) heads.push('Monto');
+    if (cols.departamento) heads.push('Departamento');
+    if (cols.cierre) heads.push('Cierre');
+    heads.push('Probabilidad', 'Estado', '');
+
+    const headHTML = heads.map((h, i) => {
+      if (i === heads.length - 1) return '<th scope="col"><span class="sr-only">Acciones</span></th>';
+      return '<th scope="col">' + esc(h) + '</th>';
+    }).join('');
+
+    const rowsHTML = items.map(({ c, i }) => rowHTML(c, i, cols)).join('');
+    return '<div class="table-scroll"><table class="data-table"><thead><tr>' + headHTML +
+      '</tr></thead><tbody>' + rowsHTML + '</tbody></table></div>';
+  }
+
+  function colsVisibles() {
+    return {
+      monto: state.data.some(c => c.monto),
+      departamento: state.data.some(c => c.departamento),
+      cierre: state.data.some(c => c.fecha_cierre)
+    };
+  }
+
+  function renderStats() {
+    const data = state.data;
+    const total = data.length;
+    const relevantes = data.filter(c => analisisDe(c).relevante !== false).length;
+    const aplicar = data.filter(c => recomendacionDe(c) === 'APLICAR').length;
+    const evaluar = data.filter(c => recomendacionDe(c) === 'EVALUAR').length;
+    const noAplicar = data.filter(c => recomendacionDe(c) === 'NO_APLICAR').length;
+    const stamp = ultimaActualizacion();
+
+    $('#stat-total').textContent = integer.format(total);
+    $('#stat-relevantes').textContent = integer.format(relevantes);
+    $('#stat-aplicar').textContent = integer.format(aplicar);
+    $('#stat-ultima').textContent = stamp ? formatFecha(stamp) : '—';
+    $('#hero-evaluar').textContent = integer.format(evaluar);
+    $('#update-stamp-text').textContent = stamp ? 'Actualizado ' + formatFechaHora(stamp) : 'Sin actualizaciones';
+
+    $('[data-count="all"]').textContent = integer.format(total);
+    $('[data-count="APLICAR"]').textContent = integer.format(aplicar);
+    $('[data-count="EVALUAR"]').textContent = integer.format(evaluar);
+    $('[data-count="NO_APLICAR"]').textContent = integer.format(noAplicar);
+  }
+
+  function renderSourcesSelect() {
+    const select = $('#filtro-fuente');
+    const fuentes = Array.from(new Set(state.data.map(c => c.fuente).filter(Boolean))).sort();
+    const actual = state.fuente;
+    select.innerHTML = '<option value="">Todas las fuentes</option>' +
+      fuentes.map(f => '<option value="' + esc(f) + '">' + esc(f) + '</option>').join('');
+    if (actual && fuentes.includes(actual)) {
+      select.value = actual;
+    } else {
+      state.fuente = '';
+      select.value = '';
+    }
+  }
+
+  function renderSourcesView() {
+    const grid = $('#sources-grid');
+    grid.innerHTML = SOURCES.map(s => {
+      const count = state.data.filter(c => c.fuente === s.key).length;
+      const link = s.href
+        ? '<a class="source-link" href="' + esc(s.href) + '" target="_blank" rel="noopener">' +
+          esc(s.linkLabel) + icon('i-external') + '</a>'
+        : '';
+      return '<article class="source-card">' +
+        '<span class="source-icon">' + icon(s.icon) + '</span>' +
+        '<h2 class="source-name">' + esc(s.name) + '</h2>' +
+        '<p class="source-desc">' + esc(s.desc) + '</p>' +
+        '<p class="source-meta"><strong>' + integer.format(count) + '</strong><span>convocatorias registradas</span></p>' +
+        link +
+        '</article>';
+    }).join('');
+  }
+
+  function renderPanelTable() {
+    const cols = colsVisibles();
+    const items = state.data
+      .map((c, i) => ({ c, i }))
+      .sort((x, y) => (probabilidadDe(y.c) || 0) - (probabilidadDe(x.c) || 0))
+      .slice(0, 5);
+
+    $('#panel-table').innerHTML = state.data.length
+      ? buildTable(items, cols, 'Sin convocatorias', 'Actualiza los datos para consultar las oportunidades disponibles.')
+      : emptyStateHTML(
+          'Aún no hay convocatorias',
+          'Actualiza los datos para consultar las oportunidades disponibles.',
+          '<button class="btn btn-primary js-update" type="button">' + icon('i-refresh') + 'Actualizar datos</button>'
+        );
+  }
+
+  function renderConvocatoriasTable() {
+    const cols = colsVisibles();
+    const items = filtradas();
+    const visibles = items.slice(0, state.limit);
+
+    const countText = items.length === state.data.length
+      ? integer.format(items.length) + ' convocatorias'
+      : integer.format(items.length) + ' de ' + integer.format(state.data.length) + ' convocatorias';
+    $('#results-count').textContent = state.data.length ? countText : '';
+
+    if (!state.data.length) {
+      $('#tabla-convocatorias').innerHTML = emptyStateHTML(
+        'Aún no hay convocatorias',
+        'Actualiza los datos para consultar las oportunidades disponibles.',
+        '<button class="btn btn-primary js-update" type="button">' + icon('i-refresh') + 'Actualizar datos</button>'
+      );
+    } else if (!items.length) {
+      $('#tabla-convocatorias').innerHTML = emptyStateHTML(
+        'No se encontraron resultados',
+        'Ninguna convocatoria coincide con los filtros aplicados.',
+        '<button class="btn btn-outline" type="button" data-clear-filters>Limpiar filtros</button>'
+      );
+    } else {
+      $('#tabla-convocatorias').innerHTML = buildTable(
+        visibles, cols, 'No se encontraron resultados', 'Ninguna convocatoria coincide con los filtros aplicados.'
+      );
+    }
+
+    const restantes = items.length - visibles.length;
+    const wrap = $('#load-more-wrap');
+    if (restantes > 0) {
+      wrap.hidden = false;
+      $('#btn-mas').textContent = 'Mostrar más convocatorias (' + restantes + ')';
+    } else {
+      wrap.hidden = true;
+    }
+  }
+
+  function renderAll() {
+    renderStats();
+    renderSourcesSelect();
+    renderSourcesView();
+    renderPanelTable();
+    renderConvocatoriasTable();
+  }
+
+  function renderLoading() {
+    $('#panel-table').innerHTML = skeletonHTML(5);
+    $('#tabla-convocatorias').innerHTML = skeletonHTML(6);
+    $('#sources-grid').innerHTML = '';
+    $('#update-stamp-text').textContent = 'Sincronizando…';
+    ['#stat-total', '#stat-relevantes', '#stat-aplicar', '#stat-ultima', '#hero-evaluar'].forEach(sel => {
+      $(sel).textContent = '—';
+    });
+    $('[data-count="all"]').textContent = '—';
+    $('[data-count="APLICAR"]').textContent = '—';
+    $('[data-count="EVALUAR"]').textContent = '—';
+    $('[data-count="NO_APLICAR"]').textContent = '—';
+    $('#results-count').textContent = '';
+    $('#load-more-wrap').hidden = true;
+  }
+
+  function renderError() {
+    $('#panel-table').innerHTML = errorStateHTML();
+    $('#tabla-convocatorias').innerHTML = errorStateHTML();
+    $('#sources-grid').innerHTML = '';
+    $('#update-stamp-text').textContent = 'Sin conexión';
+    ['#stat-total', '#stat-relevantes', '#stat-aplicar', '#stat-ultima', '#hero-evaluar'].forEach(sel => {
+      $(sel).textContent = '—';
+    });
+    $('[data-count="all"]').textContent = '—';
+    $('[data-count="APLICAR"]').textContent = '—';
+    $('[data-count="EVALUAR"]').textContent = '—';
+    $('[data-count="NO_APLICAR"]').textContent = '—';
+    $('#results-count').textContent = '';
+    $('#load-more-wrap').hidden = true;
+  }
+
+  function setRec(rec) {
+    state.rec = rec || '';
+    state.limit = 12;
+    $$('.tab').forEach(tab => {
+      const activo = tab.dataset.rec === state.rec;
+      tab.classList.toggle('active', activo);
+      tab.setAttribute('aria-pressed', activo ? 'true' : 'false');
+    });
+    if (state.data.length) renderConvocatoriasTable();
+  }
+
+  function limpiarFiltros() {
+    state.q = '';
+    state.fuente = '';
+    $('#buscar').value = '';
+    $('#filtro-fuente').value = '';
+    setRec('');
+  }
+
+  function currentView() {
+    const view = location.hash.replace('#', '');
+    return VIEWS.includes(view) ? view : 'panel';
+  }
+
+  function setView(view, options) {
+    const scroll = !options || options.scroll !== false;
+    const target = VIEWS.includes(view) ? view : 'panel';
+    VIEWS.forEach(v => {
+      const section = document.getElementById('view-' + v);
+      if (section) section.hidden = v !== target;
+    });
+    $$('.nav-link').forEach(link => {
+      const activo = link.dataset.view === target;
+      link.classList.toggle('active', activo);
+      if (activo) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+    const titles = {
+      panel: 'Radar de Convocatorias',
+      convocatorias: 'Convocatorias',
+      fuentes: 'Fuentes de información',
+      ajustes: 'Configuración del análisis'
+    };
+    document.title = titles[target] + ' · Facultad de Ingeniería UdeA';
+    if (scroll) window.scrollTo(0, 0);
+  }
+
+  async function cargarDatos(options) {
+    const silent = options && options.silent;
+    if (!silent) renderLoading();
+    const res = await fetch('/api/convocatorias', { headers: { Accept: 'application/json' } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error('Respuesta inválida del servidor');
+    state.data = data;
+    renderAll();
+  }
+
+  function setBusy(busy) {
+    state.busy = busy;
+    $$('.js-update').forEach(btn => {
+      btn.disabled = busy;
+      btn.classList.toggle('is-busy', busy);
+      const label = btn.querySelector('[data-update-label]');
+      if (label) {
+        if (!label.dataset.original) label.dataset.original = label.textContent;
+        label.textContent = busy ? 'Actualizando…' : label.dataset.original;
+      }
+    });
+  }
+
+  async function actualizar() {
+    if (state.busy) return;
+    setBusy(true);
+    showToast('Actualizando convocatorias. Este proceso puede tardar unos minutos.', 'info', 0);
+    try {
+      const res = await fetch('/api/actualizar', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) throw new Error(data.error || 'Error del servidor');
+      try {
+        await cargarDatos({ silent: true });
+        const nuevas = Number(data.nuevas) || 0;
+        const mensaje = nuevas === 1
+          ? 'Actualización completada. 1 convocatoria nueva.'
+          : 'Actualización completada. ' + nuevas + ' convocatorias nuevas.';
+        showToast(mensaje, 'success', 5000);
+      } catch (errorCarga) {
+        showToast('La actualización terminó, pero no se pudo recargar la información. Recarga la página.', 'info', 7000);
+      }
+    } catch (err) {
+      const detalle = err && err.message ? err.message : 'Intenta de nuevo.';
+      showToast('No se pudo actualizar la información. ' + detalle, 'error', 7000);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  let toastTimer;
+  function showToast(message, type, duration) {
+    const el = $('#toast');
+    const ms = duration === undefined ? 4200 : duration;
+    const iconName = type === 'error' ? 'i-alert-circle' : type === 'success' ? 'i-check-circle' : 'i-info';
+    el.className = 'toast show' + (type === 'error' ? ' error' : '');
+    el.innerHTML = icon(iconName) + '<p>' + esc(message) + '</p>';
+    clearTimeout(toastTimer);
+    if (ms > 0) {
+      toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+    }
+  }
+
+  function metaItem(label, value) {
+    return '<div class="meta-item">' +
+      '<span class="meta-label">' + esc(label) + '</span>' +
+      '<p class="meta-value">' + esc(value || 'No registrado') + '</p>' +
+      '</div>';
+  }
+
+  function metricCard(label, value, note) {
+    const nivel = claseNivel(value);
+    const texto = value == null ? '—' : value + '%';
+    const ancho = value == null ? 0 : value;
+    return '<div class="metric-card">' +
+      '<div class="metric-head"><span>' + esc(label) + '</span><strong>' + texto + '</strong></div>' +
+      '<div class="metric-track"><div class="metric-fill ' + nivel + '" style="width:' + ancho + '%"></div></div>' +
+      '<p class="metric-note">' + esc(note) + '</p>' +
+      '</div>';
+  }
+
+  function listHTML(items, iconName) {
+    return '<ul class="detail-list">' + items.map(item =>
+      '<li>' + icon(iconName) + '<span>' + esc(item) + '</span></li>'
+    ).join('') + '</ul>';
+  }
+
+  function abrirDetalle(index) {
+    const c = state.data[index];
+    if (!c) return;
+    const a = analisisDe(c);
+    const rec = a.recomendacion || '';
+    const prob = probabilidadDe(c);
+    const cumpRaw = Number(a.cumplimiento_requisitos);
+    const cump = Number.isFinite(cumpRaw) ? Math.max(0, Math.min(100, cumpRaw)) : null;
+    const cierre = parseFecha(c.fecha_cierre);
+    const registrada = c.guardado_en ? new Date(c.guardado_en) : null;
+
+    $('#detalle-kicker').innerHTML = chipFuente(c.fuente) + badgeRecomendacion(rec);
+    $('#detalle-title').textContent = c.titulo || 'Convocatoria sin título';
+
+    let body = '<section class="modal-section"><h3>Información general</h3><div class="meta-grid">' +
+      metaItem('Entidad', c.entidad) +
+      metaItem('Departamento', c.departamento) +
+      metaItem('Modalidad', c.modalidad) +
+      metaItem('Estado del proceso', c.estado) +
+      metaItem('Monto', montoTexto(c.monto)) +
+      metaItem('Fecha de cierre', cierre ? formatFecha(cierre) : 'No registrada') +
+      (registrada && !isNaN(registrada.getTime()) ? metaItem('Registrada', formatFechaHora(registrada)) : '') +
+      '</div></section>';
+
+    body += '<section class="modal-section"><h3>Análisis de la convocatoria</h3>';
+    if (prob != null || cump != null) {
+      body += '<div class="metrics-grid">' +
+        metricCard('Probabilidad de adjudicación', prob, 'Estimación del análisis de afinidad.') +
+        metricCard('Cumplimiento de requisitos', cump, 'Nivel de cumplimiento identificado.') +
+        '</div>';
+      if (a.recomendacion_modelo && a.recomendacion_modelo !== rec) {
+        body += '<p class="metric-note">El modelo sugirió ' +
+          esc(REC_LABELS[a.recomendacion_modelo] || a.recomendacion_modelo) +
+          '; los umbrales configurados ajustaron la recomendación a ' +
+          esc(REC_LABELS[rec] || rec) + '.</p>';
+      }
+    } else {
+      body += '<p class="modal-text text-muted">Esta convocatoria aún no cuenta con un análisis registrado.</p>';
+    }
+    body += '</section>';
+
+    if (a.resumen) {
+      body += '<section class="modal-section"><h3>Resumen</h3><p class="modal-text">' + esc(a.resumen) + '</p></section>';
+    }
+
+    const areas = Array.isArray(a.areas_relevantes) ? a.areas_relevantes : [];
+    if (areas.length) {
+      body += '<section class="modal-section"><h3>Áreas relevantes</h3><div class="chips">' +
+        areas.map(area => '<span class="chip">' + esc(area) + '</span>').join('') +
+        '</div></section>';
+    }
+
+    const fortalezas = Array.isArray(a.fortalezas) ? a.fortalezas : [];
+    const riesgos = Array.isArray(a.riesgos) ? a.riesgos : [];
+    if (fortalezas.length || riesgos.length) {
+      body += '<section class="modal-section"><h3>Hallazgos del análisis</h3><div class="list-grid">';
+      if (fortalezas.length) {
+        body += '<div><h4>Fortalezas</h4>' + listHTML(fortalezas, 'i-check-circle') + '</div>';
+      }
+      if (riesgos.length) {
+        body += '<div><h4>Riesgos</h4>' + listHTML(riesgos, 'i-alert-circle').replace('class="detail-list"', 'class="detail-list detail-list-warn"') + '</div>';
+      }
+      body += '</div></section>';
+    }
+
+    $('#detalle-body').innerHTML = body;
+
+    const link = $('#detalle-link');
+    if (c.url) {
+      link.href = c.url;
+      link.hidden = false;
+    } else {
+      link.hidden = true;
+    }
+
+    const modal = $('#detalle-modal');
+    if (typeof modal.showModal === 'function') {
+      if (!modal.open) modal.showModal();
+    } else {
+      modal.setAttribute('open', '');
+    }
+    document.body.classList.add('modal-open');
+  }
+
+  function cerrarModal() {
+    const modal = $('#detalle-modal');
+    if (typeof modal.close === 'function' && modal.open) modal.close();
+    else modal.removeAttribute('open');
+    document.body.classList.remove('modal-open');
+  }
+
+  function handleDocumentClick(event) {
+    const update = event.target.closest('.js-update');
+    if (update) {
+      event.preventDefault();
+      actualizar();
       return;
     }
 
-    empty.style.display = 'none';
-    grid.innerHTML = datos.map(c => cardHTML(c)).join('');
-  }
+    const detalle = event.target.closest('[data-detalle]');
+    if (detalle) {
+      abrirDetalle(Number(detalle.getAttribute('data-detalle')));
+      return;
+    }
 
-  function cardHTML(c) {
-    const a = c.analisis || {};
-    const prob = a.probabilidad_ganar || 0;
-    const cump = a.cumplimiento_requisitos || 0;
-    const rec = a.recomendacion || 'EVALUAR';
-    const monto = c.monto ? `$${Number(c.monto).toLocaleString('es-CO')} COP` : 'Monto no especificado';
-    const areas = (a.areas_relevantes || []).slice(0, 3);
-    const probColor = prob >= 70 ? '#68d391' : prob >= 40 ? '#fbd38d' : '#fc8181';
-    const cumpColor = cump >= 70 ? '#68d391' : cump >= 40 ? '#fbd38d' : '#fc8181';
+    const retry = event.target.closest('[data-retry]');
+    if (retry) {
+      cargarDatos().catch(() => {
+        renderError();
+        showToast('No se pudo cargar la información. Verifica que el servidor esté en ejecución.', 'error', 6000);
+      });
+      return;
+    }
 
-    const fechaCierre = c.fecha_cierre ?
-      `<span>📅 Cierre: ${c.fecha_cierre.split('T')[0]}</span>` : '';
+    const clear = event.target.closest('[data-clear-filters]');
+    if (clear) {
+      limpiarFiltros();
+      return;
+    }
 
-    const urlBtn = c.url ?
-      `<a href="${c.url}" target="_blank" rel="noopener">Ver convocatoria →</a>` :
-      '<span>Sin enlace</span>';
+    const close = event.target.closest('[data-close]');
+    if (close) {
+      cerrarModal();
+      return;
+    }
 
-    return `
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">${escHtml(c.titulo)}</div>
-          <span class="rec-badge rec-${rec}">${rec}</span>
-        </div>
-        <div class="card-meta">
-          <span class="fuente-tag">${escHtml(c.fuente)}</span>
-          <span>${escHtml(c.entidad || '')}</span>
-          ${c.departamento ? `<span>📍 ${escHtml(c.departamento)}</span>` : ''}
-        </div>
-        <div class="monto">💰 ${monto}</div>
-        <div class="metrics">
-          <div class="metric">
-            <div class="metric-label">Prob. de ganar</div>
-            <div class="metric-value" style="color:${probColor}">${prob}%</div>
-            <div class="bar"><div class="bar-fill" style="width:${prob}%;background:${probColor}"></div></div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Cumplimiento req.</div>
-            <div class="metric-value" style="color:${cumpColor}">${cump}%</div>
-            <div class="bar"><div class="bar-fill" style="width:${cump}%;background:${cumpColor}"></div></div>
-          </div>
-        </div>
-        ${a.resumen ? `<div class="resumen">${escHtml(a.resumen)}</div>` : ''}
-        <div class="tags">
-          ${areas.map(ar => `<span class="tag">${escHtml(ar)}</span>`).join('')}
-        </div>
-        <div class="card-footer">
-          ${fechaCierre}
-          ${urlBtn}
-        </div>
-      </div>`;
-  }
-
-  function escHtml(str) {
-    return String(str || '')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;');
-  }
-
-  function filtrar() {
-    const texto = document.getElementById('buscar').value.toLowerCase();
-    const rec = document.getElementById('filtro-rec').value;
-    const fuente = document.getElementById('filtro-fuente').value;
-
-    const filtradas = todas.filter(c => {
-      const a = c.analisis || {};
-      const matchTexto = !texto ||
-        c.titulo.toLowerCase().includes(texto) ||
-        (c.entidad || '').toLowerCase().includes(texto) ||
-        (a.resumen || '').toLowerCase().includes(texto);
-      const matchRec = !rec || a.recomendacion === rec;
-      const matchFuente = !fuente || c.fuente === fuente;
-      return matchTexto && matchRec && matchFuente;
-    });
-
-    renderizar(filtradas);
-  }
-
-  async function actualizarDatos() {
-    const btn = document.getElementById('btn-actualizar');
-    const txt = document.getElementById('btn-text');
-    const sp = document.getElementById('spinner');
-
-    btn.disabled = true;
-    txt.style.display = 'none';
-    sp.style.display = 'block';
-
-    try {
-      const r = await fetch('/api/actualizar', { method: 'POST' });
-      const data = await r.json();
-      mostrarToast(`✅ ${data.nuevas} convocatorias nuevas agregadas`);
-      await cargarConvocatorias();
-    } catch(e) {
-      mostrarToast('❌ Error al actualizar', true);
-    } finally {
-      btn.disabled = false;
-      txt.style.display = 'inline';
-      sp.style.display = 'none';
+    const recLink = event.target.closest('[data-rec-link]');
+    if (recLink) {
+      setRec(recLink.getAttribute('data-rec-link'));
     }
   }
 
-  function mostrarToast(msg, error=false) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.style.background = error ? '#63171b' : '#276749';
-    t.style.color = error ? '#fc8181' : '#9ae6b4';
-    t.style.display = 'block';
-    setTimeout(() => t.style.display = 'none', 4000);
+  function llenarAjustes(a) {
+    if (!a) return;
+    $('#cfg-perfil').value = a.perfil || '';
+    $('#cfg-modelo').value = a.modelo || '';
+    $('#cfg-temperatura').value = a.temperatura == null ? 0.1 : a.temperatura;
+    $('#cfg-limite').value = a.limite_secop == null ? 20 : a.limite_secop;
+
+    const criterios = a.criterios || {};
+    CAMPOS_PESO.forEach(clave => {
+      $('#cfg-' + clave).value = criterios[clave] == null ? 0 : criterios[clave];
+    });
+
+    const umbrales = a.umbrales || {};
+    $('#cfg-aplicar-prob').value = umbrales.aplicar_probabilidad == null ? 65 : umbrales.aplicar_probabilidad;
+    $('#cfg-aplicar-cump').value = umbrales.aplicar_cumplimiento == null ? 60 : umbrales.aplicar_cumplimiento;
+    $('#cfg-descartar-prob').value = umbrales.descartar_probabilidad == null ? 35 : umbrales.descartar_probabilidad;
+    $('#cfg-descartar-cump').value = umbrales.descartar_cumplimiento == null ? 30 : umbrales.descartar_cumplimiento;
+    $('#cfg-ajustar').checked = umbrales.ajustar_recomendacion !== false;
+
+    $('#cfg-instrucciones').value = a.instrucciones || '';
+    actualizarPesoTotal();
   }
 
-  document.getElementById('buscar').addEventListener('input', filtrar);
-  document.getElementById('filtro-rec').addEventListener('change', filtrar);
-  document.getElementById('filtro-fuente').addEventListener('change', filtrar);
+  async function cargarAjustes() {
+    const estado = $('#ajustes-estado');
+    estado.textContent = 'Cargando configuración…';
+    estado.classList.remove('error');
+    try {
+      const res = await fetch('/api/ajustes', { headers: { Accept: 'application/json' } });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      state.ajustes = data;
+      llenarAjustes(data);
+      $('#btn-guardar-ajustes').disabled = false;
+      $('#btn-guardar-ajustes-top').disabled = false;
+      estado.textContent = 'Configuración cargada.';
+    } catch (error) {
+      console.error(error);
+      $('#btn-guardar-ajustes').disabled = true;
+      $('#btn-guardar-ajustes-top').disabled = true;
+      estado.textContent = 'No se pudo cargar la configuración. Recarga la página.';
+      estado.classList.add('error');
+      showToast('No se pudo cargar la configuración del análisis.', 'error', 6000);
+    }
+  }
 
-  // Cargar al inicio
-  cargarConvocatorias();
+  function actualizarPesoTotal() {
+    const total = CAMPOS_PESO.reduce((suma, clave) => {
+      const valor = Number($('#cfg-' + clave).value);
+      return suma + (Number.isFinite(valor) ? valor : 0);
+    }, 0);
+    $('#peso-total').textContent = integer.format(total) + '%';
+    $('#peso-total-wrap').classList.toggle('warn', total <= 0);
+  }
+
+  function leerAjustesFormulario() {
+    const numero = id => Number($('#cfg-' + id).value);
+    return {
+      perfil: $('#cfg-perfil').value.trim(),
+      modelo: $('#cfg-modelo').value.trim(),
+      temperatura: numero('temperatura'),
+      limite_secop: numero('limite'),
+      criterios: {
+        afinidad: numero('afinidad'),
+        experiencia: numero('experiencia'),
+        requisitos: numero('requisitos'),
+        viabilidad: numero('viabilidad')
+      },
+      umbrales: {
+        aplicar_probabilidad: numero('aplicar-prob'),
+        aplicar_cumplimiento: numero('aplicar-cump'),
+        descartar_probabilidad: numero('descartar-prob'),
+        descartar_cumplimiento: numero('descartar-cump'),
+        ajustar_recomendacion: $('#cfg-ajustar').checked
+      },
+      instrucciones: $('#cfg-instrucciones').value.trim()
+    };
+  }
+
+  function validarAjustes(a) {
+    if (a.perfil.length < 20) return 'El perfil institucional debe tener al menos 20 caracteres.';
+    if (!a.modelo) return 'Indica el identificador del modelo.';
+    if (!Number.isFinite(a.temperatura) || a.temperatura < 0 || a.temperatura > 1) {
+      return 'La temperatura debe estar entre 0 y 1.';
+    }
+    if (!Number.isInteger(a.limite_secop) || a.limite_secop < 1 || a.limite_secop > 50) {
+      return 'El límite de SECOP debe ser un entero entre 1 y 50.';
+    }
+
+    for (const clave of CAMPOS_PESO) {
+      const valor = a.criterios[clave];
+      if (!Number.isFinite(valor) || valor < 0 || valor > 100) {
+        return 'Cada peso debe estar entre 0 y 100.';
+      }
+    }
+    const sumaPesos = CAMPOS_PESO.reduce((suma, clave) => suma + a.criterios[clave], 0);
+    if (sumaPesos <= 0) return 'Al menos un criterio debe tener un peso mayor que cero.';
+
+    const clavesUmbral = [
+      'aplicar_probabilidad',
+      'aplicar_cumplimiento',
+      'descartar_probabilidad',
+      'descartar_cumplimiento'
+    ];
+    for (const clave of clavesUmbral) {
+      const valor = a.umbrales[clave];
+      if (!Number.isFinite(valor) || valor < 0 || valor > 100) {
+        return 'Los umbrales deben estar entre 0 y 100.';
+      }
+    }
+    if (a.umbrales.descartar_probabilidad > a.umbrales.aplicar_probabilidad) {
+      return 'El umbral de descarte de probabilidad no puede superar el de aplicación.';
+    }
+    if (a.umbrales.descartar_cumplimiento > a.umbrales.aplicar_cumplimiento) {
+      return 'El umbral de descarte de cumplimiento no puede superar el de aplicación.';
+    }
+
+    return '';
+  }
+
+  function setGuardandoAjustes(busy) {
+    $('#btn-guardar-ajustes').disabled = busy;
+    $('#btn-guardar-ajustes-top').disabled = busy;
+    $('#btn-restaurar').disabled = busy;
+    $('#btn-guardar-label').textContent = busy ? 'Guardando…' : 'Guardar cambios';
+    $('#btn-guardar-top-label').textContent = busy ? 'Guardando…' : 'Guardar cambios';
+  }
+
+  async function guardarAjustesForm(event) {
+    event.preventDefault();
+    const payload = leerAjustesFormulario();
+    const error = validarAjustes(payload);
+    if (error) {
+      showToast(error, 'error', 6000);
+      return;
+    }
+
+    setGuardandoAjustes(true);
+    const estado = $('#ajustes-estado');
+    estado.textContent = 'Guardando configuración…';
+    estado.classList.remove('error');
+
+    try {
+      const res = await fetch('/api/ajustes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'No se pudo guardar la configuración.');
+
+      state.ajustes = data;
+      llenarAjustes(data);
+      estado.textContent = 'Guardado. Los cambios se aplican a los próximos análisis.';
+      showToast('Configuración guardada. Se aplicará en los próximos análisis.', 'success', 5000);
+    } catch (err) {
+      estado.textContent = 'No se pudo guardar la configuración.';
+      estado.classList.add('error');
+      showToast(err.message || 'No se pudo guardar la configuración.', 'error', 7000);
+    } finally {
+      setGuardandoAjustes(false);
+    }
+  }
+
+  async function restablecerAjustesForm() {
+    if (!window.confirm('¿Restaurar la configuración predeterminada? Se perderán los cambios actuales.')) {
+      return;
+    }
+
+    setGuardandoAjustes(true);
+    const estado = $('#ajustes-estado');
+    try {
+      const res = await fetch('/api/ajustes/restablecer', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'No se pudo restablecer la configuración.');
+
+      state.ajustes = data;
+      llenarAjustes(data);
+      estado.textContent = 'Configuración restaurada.';
+      estado.classList.remove('error');
+      showToast('Se restauraron los valores predeterminados.', 'success', 5000);
+    } catch (err) {
+      estado.textContent = 'No se pudo restaurar la configuración.';
+      estado.classList.add('error');
+      showToast(err.message || 'No se pudo restaurar la configuración.', 'error', 7000);
+    } finally {
+      setGuardandoAjustes(false);
+    }
+  }
+
+  async function reanalizarRegistros() {
+    const mensaje = 'Se volverán a analizar todas las convocatorias registradas con la configuración actual. ' +
+      'Puede tardar varios minutos y consume llamadas al modelo. ¿Continuar?';
+    if (!window.confirm(mensaje)) return;
+
+    const btn = $('#btn-reanalizar');
+    const estado = $('#ajustes-estado');
+    btn.disabled = true;
+    btn.classList.add('is-busy');
+    estado.textContent = 'Reanalizando convocatorias…';
+    estado.classList.remove('error');
+    showToast('Reanalizando convocatorias. Este proceso puede tardar varios minutos.', 'info', 0);
+
+    try {
+      const res = await fetch('/api/reanalizar', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) throw new Error(data.error || 'Error del servidor');
+
+      await cargarDatos({ silent: true });
+      const total = Number(data.actualizados) || 0;
+      estado.textContent = total === 1
+        ? 'Reanálisis completado. 1 registro actualizado.'
+        : 'Reanálisis completado. ' + total + ' registros actualizados.';
+      showToast(estado.textContent, 'success', 6000);
+    } catch (err) {
+      estado.textContent = 'No se pudo completar el reanálisis.';
+      estado.classList.add('error');
+      showToast('No se pudo completar el reanálisis. ' + (err.message || ''), 'error', 7000);
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('is-busy');
+    }
+  }
+
+  async function probarModelo() {
+    const btn = $('#btn-probar-modelo');
+    const estado = $('#probar-estado');
+    btn.disabled = true;
+    btn.classList.add('is-busy');
+    estado.className = 'field-hint';
+    estado.textContent = 'Probando conexión…';
+
+    try {
+      const res = await fetch('/api/probar_modelo', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error || 'No se pudo conectar con el modelo.');
+
+      estado.className = 'field-hint status-ok';
+      estado.textContent = 'Conexión correcta con ' + (data.modelo || 'el modelo') + '.';
+      showToast('Conexión correcta con el modelo.', 'success', 4000);
+    } catch (err) {
+      estado.className = 'field-hint status-error';
+      estado.textContent = 'Error: ' + (err.message || 'No se pudo conectar.');
+      showToast('No se pudo conectar con el modelo. Revisa la clave de OpenRouter.', 'error', 7000);
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('is-busy');
+    }
+  }
+
+  function bindEvents() {
+    window.addEventListener('hashchange', () => setView(currentView()));
+
+    $('#buscar').addEventListener('input', event => {
+      state.q = event.target.value;
+      state.limit = 12;
+      if (state.data.length) renderConvocatoriasTable();
+    });
+
+    $('#filtro-fuente').addEventListener('change', event => {
+      state.fuente = event.target.value;
+      state.limit = 12;
+      if (state.data.length) renderConvocatoriasTable();
+    });
+
+    $$('.tab').forEach(tab => {
+      tab.addEventListener('click', () => setRec(tab.getAttribute('data-rec')));
+    });
+
+    $('#btn-mas').addEventListener('click', () => {
+      state.limit += 12;
+      renderConvocatoriasTable();
+    });
+
+    const modal = $('#detalle-modal');
+    modal.addEventListener('close', () => document.body.classList.remove('modal-open'));
+    modal.addEventListener('click', event => {
+      if (event.target === modal) cerrarModal();
+    });
+
+    $('#form-ajustes').addEventListener('submit', guardarAjustesForm);
+    $('#btn-restaurar').addEventListener('click', restablecerAjustesForm);
+    $('#btn-reanalizar').addEventListener('click', reanalizarRegistros);
+    $('#btn-probar-modelo').addEventListener('click', probarModelo);
+    CAMPOS_PESO.forEach(clave => {
+      $('#cfg-' + clave).addEventListener('input', actualizarPesoTotal);
+    });
+
+    document.addEventListener('click', handleDocumentClick);
+  }
+
+  function init() {
+    bindEvents();
+    setView(currentView(), { scroll: false });
+    cargarDatos().catch(error => {
+      console.error(error);
+      renderError();
+      showToast('No se pudo cargar la información. Verifica que el servidor esté en ejecución.', 'error', 6000);
+    });
+    cargarAjustes();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 </script>
 </body>
 </html>
+
+
